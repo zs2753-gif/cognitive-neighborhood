@@ -7,70 +7,74 @@
   <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap');
     
-    /* 3D 楼层立体透视与视效 */
-    .perspective-container { perspective: 1000px; }
-    .building-container { transform-style: preserve-3d; transform: rotateX(15deg) rotateY(-5deg); transition: all 0.5s ease; }
-    
-    .floor-3d {
-      position: relative;
-      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-      box-shadow: 0 10px 0 #cbd5e1, 0 15px 20px rgba(0,0,0,0.15);
-      transform: translateZ(0);
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    body { 
+      -webkit-tap-highlight-color: transparent; 
+      background-color: #f4efe6; 
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     }
     
-    .floor-3d-gold {
-      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-      box-shadow: 0 10px 0 #f59e0b, 0 15px 25px rgba(245, 158, 11, 0.3);
-      border: 2px solid #fbbf24;
-    }
-    
-    .floor-3d:active {
-      transform: translateY(4px) translateZ(0);
-      box-shadow: 0 6px 0 #cbd5e1, 0 8px 10px rgba(0,0,0,0.1);
+    .font-handwritten { font-family: 'Caveat', cursive, cursive; }
+
+    /* 手绘插画风卡片与木质/墙体效果 */
+    .house-roof {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
     }
 
-    .roof-3d {
-      background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-      box-shadow: 0 12px 0 #312e81, 0 20px 25px rgba(99, 102, 241, 0.3);
+    .floor-section {
+      background: #fefcf8;
+      border: 3px solid #78350f;
+      box-shadow: 4px 6px 0px #78350f;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .floor-section:active {
+      transform: translateY(2px);
+      box-shadow: 2px 3px 0px #78350f;
+    }
+
+    .gold-brick {
+      background: #fef3c7;
+      border: 2px dashed #d97706;
+      color: #92400e;
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 pb-24 min-h-screen">
+<body class="text-amber-950 pb-24 min-h-screen">
 
-  <!-- 顶部标题栏与语言切换 -->
-  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex justify-between items-center">
+  <!-- 顶栏与语言切换 -->
+  <header class="sticky top-0 z-50 bg-[#f4efe6]/90 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-2">
-      <span class="text-xl">🏙️</span>
-      <h1 class="font-bold text-white text-lg" id="app-title">认知小区</h1>
+      <span class="text-2xl">🏡</span>
+      <h1 class="font-extrabold text-amber-950 text-lg" id="app-title">认知小区</h1>
     </div>
-    <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800 active:scale-95 transition">
+    <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1 text-xs font-bold rounded-full bg-amber-200 text-amber-900 border border-amber-400 active:scale-95 transition">
       EN / 中文
     </button>
   </header>
 
   <main class="max-w-md mx-auto p-4" id="main-container">
-    <!-- 动态渲染核心 -->
+    <!-- 动态渲染区 -->
   </main>
 
   <!-- 底部导航 -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 py-2 px-3 flex justify-around items-center z-50 max-w-md mx-auto">
-    <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-medium text-indigo-400" id="nav-towers">
-      <span class="text-lg">🏢</span><span class="nav-label" data-zh="大楼" data-en="Towers">大楼</span>
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#fefcf8] border-t-2 border-amber-900 py-2 px-3 flex justify-around items-center z-50 max-w-md mx-auto shadow-2xl">
+    <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-800" id="nav-towers">
+      <span class="text-xl">🏢</span><span class="nav-label" data-zh="大楼" data-en="Towers">大楼</span>
     </button>
-    <button onclick="switchTab('locker')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-locker">
-      <span class="text-lg">📦</span><span class="nav-label" data-zh="快递柜" data-en="Locker">快递柜</span>
+    <button onclick="switchTab('locker')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-locker">
+      <span class="text-xl">📦</span><span class="nav-label" data-zh="快递柜" data-en="Locker">快递柜</span>
     </button>
-    <button onclick="switchTab('mystery')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-mystery">
-      <span class="text-lg">❓</span><span class="nav-label" data-zh="问答箱" data-en="Mystery">问答箱</span>
+    <button onclick="switchTab('mystery')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-mystery">
+      <span class="text-xl">❓</span><span class="nav-label" data-zh="问答箱" data-en="Mystery">问答箱</span>
     </button>
-    <button onclick="switchTab('garden')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-garden">
-      <span class="text-lg">🏡</span><span class="nav-label" data-zh="花园" data-en="Garden">花园</span>
+    <button onclick="switchTab('garden')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-garden">
+      <span class="text-xl">🌿</span><span class="nav-label" data-zh="花园" data-en="Garden">花园</span>
     </button>
-    <button onclick="switchTab('archive')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-archive">
-      <span class="text-lg">🗺️</span><span class="nav-label" data-zh="地图一览" data-en="Archive">地图一览</span>
+    <button onclick="switchTab('archive')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-archive">
+      <span class="text-xl">🗺️</span><span class="nav-label" data-zh="地图一览" data-en="Archive">地图一览</span>
     </button>
   </nav>
 
@@ -83,35 +87,82 @@
       towers: [
         {
           id: 'body',
-          name_zh: '身材管理大楼',
-          name_en: 'Body Management',
-          icon: '🏃‍♀️',
+          name_zh: 'Health System',
+          name_en: 'Health System',
+          version: 'v1.2',
+          vision_zh: '成为更健康、更有能量的自己。',
+          vision_en: 'Become a healthier and more energetic self.',
+          icon: '🏠',
           floors: [
-            { id: 'f1', title_zh: '1楼：作息与睡眠', title_en: '1F: Sleep SOP', fortifyLevel: 2, maxFortify: 3, logs: ['睡眠<7小时影响训练发力', '11点前入睡恢复更快'] },
-            { id: 'f2', title_zh: '2楼：饮食与排卵期', title_en: '2F: Diet & Cycle', fortifyLevel: 3, maxFortify: 3, logs: ['排卵期吃复合碳水止甜食欲望', '先吃蛋白蔬菜再吃碳水'] }
-          ]
-        },
-        {
-          id: 'finance',
-          name_zh: '财商投资大楼',
-          name_en: 'Wealth & Finance',
-          icon: '📈',
-          floors: [
-            { id: 'f1', title_zh: '1楼：资产配置地基', title_en: '1F: Asset Allocation', fortifyLevel: 1, maxFortify: 3, logs: ['预留6个月应急准备金'] }
+            {
+              id: 'f5',
+              num: 5,
+              title_zh: '心态与情绪',
+              title_en: 'Mindset & Emotion',
+              room_icon: '🧘‍♀️',
+              desc_zh: '保持积极，学会调节压力，建立内在稳定性。',
+              desc_en: 'Stay positive, regulate stress, build stability.',
+              items: ['正念冥想', '情绪记录', '积极自我对话', '与支持的人交流'],
+              fortified: true
+            },
+            {
+              id: 'f4',
+              num: 4,
+              title_zh: '作息与睡眠',
+              title_en: 'Sleep Habits',
+              room_icon: '🌙',
+              desc_zh: '规律作息，保证充足睡眠，让身体充分恢复。',
+              desc_en: 'Keep regular sleep to restore mind and body.',
+              items: ['固定睡眠时间', '睡前放松', '减少屏幕时间', '保证7-8小时睡眠'],
+              fortified: true
+            },
+            {
+              id: 'f3',
+              num: 3,
+              title_zh: '运动习惯',
+              title_en: 'Workout Habits',
+              room_icon: '🏃',
+              desc_zh: '增强体能，提升耐力，让身体更有活力。',
+              desc_en: 'Build endurance and stay energetic.',
+              items: ['每周3-5次运动', '力量训练', '有氧运动', '拉伸放松'],
+              fortified: false
+            },
+            {
+              id: 'f2',
+              num: 2,
+              title_zh: '生活方式',
+              title_en: 'Lifestyle Management',
+              room_icon: '📖',
+              desc_zh: '提升专注力，管理时间，建立高效习惯。',
+              desc_en: 'Improve focus, manage time efficiently.',
+              items: ['时间管理', '减少拖延', '专注工作学习', '保持好奇心'],
+              fortified: false
+            },
+            {
+              id: 'f1',
+              num: 1,
+              title_zh: '饮食习惯',
+              title_en: 'Diet System',
+              room_icon: '🥗',
+              desc_zh: '营养均衡，控制热量，为身体提供能量。',
+              desc_en: 'Balanced nutrition and steady energy.',
+              items: ['低碳饮食', '先吃蔬菜', '高蛋白摄入', '多喝水', '少糖少油'],
+              fortified: true
+            }
           ]
         }
       ],
       expressLocker: [
-        { id: 'e1', text_zh: '深蹲时脚尖稍外展可以缓解膝盖压力', text_en: 'Slightly flaring toes during squats relieves knee pressure' }
+        { id: 'e1', text_zh: '先吃蔬菜再吃蛋白质，血糖更稳定', text_en: 'Eat veggies before protein for steady blood sugar' }
       ],
       mysteryBox: [
-        { id: 'm1', q_zh: '为什么排卵期前一周总想暴饮暴食？', q_en: 'Why cravings hit before ovulation?', a_zh: '黄体期孕酮上升引发血糖波动，补充低GI碳水即可平抑。', a_en: 'Progesterone causes glucose swings; low-GI carbs help.', isSolved: true }
+        { id: 'm1', q_zh: '下午3点总是犯困怎么办？', q_en: 'How to tackle 3 PM fatigue?', a_zh: '午餐减少精制碳水，增加蛋白质与20分钟散步。', a_en: 'Reduce refined carbs at lunch and take a 20-min walk.', isSolved: true }
       ],
       garden: {
-        whoIAm_zh: '已坚持健康饮食 30 天的执行者',
-        whoIAm_en: 'Healthy eating streak: 30 days',
-        future_zh: '拥有体脂率 18% 并且自由做 10 个引体向上',
-        future_en: 'Target 18% body fat & 10 pull-ups'
+        whoIAm_zh: '坚持 Health System 运行 45 天的系统构建者',
+        whoIAm_en: 'Health System Builder - 45 Day Streak',
+        future_zh: '拥有极佳精力与稳定情绪的健康个体',
+        future_en: 'A person with boundless energy and emotional balance'
       }
     };
 
@@ -132,13 +183,13 @@
       currentTab = tab;
       if (towerId) selectedTowerId = towerId;
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('text-indigo-400');
-        btn.classList.add('text-slate-500');
+        btn.classList.remove('text-amber-800');
+        btn.classList.add('text-amber-900/40');
       });
       const activeNav = document.getElementById(`nav-${tab === 'tower_detail' ? 'towers' : tab}`);
       if (activeNav) {
-        activeNav.classList.remove('text-slate-500');
-        activeNav.classList.add('text-indigo-400');
+        activeNav.classList.remove('text-amber-900/40');
+        activeNav.classList.add('text-amber-800');
       }
       render();
     }
@@ -147,30 +198,29 @@
       document.querySelectorAll('.nav-label').forEach(el => {
         el.innerText = el.getAttribute(`data-${lang}`);
       });
-      document.getElementById('app-title').innerText = lang === 'zh' ? '认知小区' : 'Cognitive Neighborhood';
+      document.getElementById('app-title').innerText = lang === 'zh' ? '认知小区' : 'Cognitive District';
 
       const container = document.getElementById('main-container');
 
       if (currentTab === 'towers') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">${lang === 'zh' ? '我的建筑群 (点击进入)' : 'Select Your Building'}</h2>
-            <div class="grid grid-cols-1 gap-4">
-              ${appData.towers.map(t => `
-                <div onclick="switchTab('tower_detail', '${t.id}')" class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/80 flex items-center justify-between cursor-pointer active:scale-98 transition shadow-lg">
-                  <div class="flex items-center space-x-4">
-                    <div class="text-4xl p-3 bg-indigo-950/80 border border-indigo-800/50 rounded-2xl shadow-inner">${t.icon}</div>
-                    <div>
-                      <h3 class="font-bold text-white text-base">${lang === 'zh' ? t.name_zh : t.name_en}</h3>
-                      <p class="text-xs text-indigo-400 mt-1 font-semibold">🏢 ${t.floors.length}${lang === 'zh' ? '层高度' : 'Floors High'}</p>
-                    </div>
+            <h2 class="text-xs font-black text-amber-900/60 uppercase tracking-widest">${lang === 'zh' ? '我的建筑群 (Dollhouse View)' : 'My Dollhouses'}</h2>
+            ${appData.towers.map(t => `
+              <div onclick="switchTab('tower_detail', '${t.id}')" class="floor-section p-5 rounded-2xl flex items-center justify-between cursor-pointer">
+                <div class="flex items-center space-x-4">
+                  <span class="text-4xl">${t.icon}</span>
+                  <div>
+                    <h3 class="font-black text-amber-950 text-lg">${t.name_zh} <span class="text-xs font-normal text-amber-700">${t.version}</span></h3>
+                    <p class="text-xs text-amber-800/70 mt-1">${t.floors.length}${lang === 'zh' ? '层剖面结构大楼' : 'Floors Structure'}</p>
                   </div>
-                  <span class="text-slate-500 text-lg">➔</span>
                 </div>
-              `).join('')}
-            </div>
-            <button onclick="addNewTower()" class="w-full py-4 border-2 border-dashed border-indigo-500/30 text-indigo-400 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2 bg-indigo-950/20 active:bg-indigo-900/40 transition">
-              <span class="text-lg">+</span><span>${lang === 'zh' ? '建造新大楼' : 'Build New Tower'}</span>
+                <span class="text-amber-900 font-extrabold text-xl">➔</span>
+              </div>
+            `).join('')}
+            
+            <button onclick="addNewTower()" class="w-full py-4 border-2 border-dashed border-amber-800/40 text-amber-900 rounded-2xl font-black text-sm flex items-center justify-center space-x-2 bg-amber-100/50 active:bg-amber-200 transition">
+              <span class="text-xl">+</span><span>${lang === 'zh' ? '设计新剖面大楼' : 'Design New Dollhouse'}</span>
             </button>
           </div>
         `;
@@ -179,72 +229,80 @@
         container.innerHTML = `
           <div>
             <div class="flex justify-between items-center mb-4">
-              <button onclick="switchTab('towers')" class="text-xs text-indigo-400 font-bold flex items-center bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-                ← ${lang === 'zh' ? '返回小区大地图' : 'Back to District'}
+              <button onclick="switchTab('towers')" class="text-xs text-amber-900 font-bold bg-amber-200/60 px-3 py-1.5 rounded-xl border border-amber-800/30">
+                ← ${lang === 'zh' ? '返回建筑群' : 'District Map'}
               </button>
-              <button onclick="addNewFloor('${tower.id}')" class="text-xs bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg active:scale-95 transition">
-                + ${lang === 'zh' ? '向上建一层新楼' : 'Build Upper Floor'}
+              <button onclick="addNewFloor('${tower.id}')" class="text-xs bg-amber-800 text-amber-50 font-bold px-3 py-1.5 rounded-xl border border-amber-950 shadow">
+                + ${lang === 'zh' ? '加盖顶楼新层' : 'Build Upper Floor'}
               </button>
             </div>
 
-            <div class="flex items-center space-x-2 mb-6">
-              <span class="text-3xl">${tower.icon}</span>
-              <h2 class="text-2xl font-black text-white">${lang === 'zh' ? tower.name_zh : tower.name_en}</h2>
+            <!-- 屋顶与愿景看板 -->
+            <div class="bg-amber-100 border-3 border-amber-900 p-4 rounded-3xl mb-4 text-center relative shadow-md">
+              <div class="font-handwritten text-2xl text-amber-900 font-bold">Small habits build a big life.</div>
+              <h2 class="text-xl font-black text-amber-950 mt-1">${tower.name_zh} <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-200">${tower.version}</span></h2>
+              <p class="text-xs text-amber-800 mt-2 font-medium">🎯 Vision: ${lang === 'zh' ? tower.vision_zh : tower.vision_en}</p>
             </div>
 
-            <!-- 3D 楼层垂直堆叠区 -->
-            <div class="perspective-container my-8 px-2">
-              <div class="building-container space-y-5">
-                
-                <!-- 屋顶顶部 -->
-                <div class="roof-3d p-3 rounded-2xl text-center text-white font-bold text-xs tracking-widest uppercase">
-                  👑 ${lang === 'zh' ? '认知巅峰 Roof' : 'Cognitive Roof'}
-                </div>
+            <!-- 剖面大楼直观展示区 -->
+            <div class="space-y-4">
+              ${tower.floors.map(f => `
+                <div class="floor-section rounded-2xl p-4 relative">
+                  
+                  <!-- 楼层标题头 -->
+                  <div class="flex justify-between items-center border-b border-amber-900/10 pb-2 mb-3">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-2xl">${f.room_icon || '🏠'}</span>
+                      <h3 class="font-black text-amber-950 text-base">${f.num}.${lang === 'zh' ? f.title_zh : f.title_en}</h3>
+                    </div>
+                    ${f.fortified ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full gold-brick">🏆 ${lang === 'zh' ? '金砖强化层' : 'Fortified'}</span>` : ''}
+                  </div>
 
-                <!-- 倒序渲染：最高层在最上面 -->
-                ${tower.floors.slice().reverse().map(f => `
-                  <div class="floor-3d ${f.fortifyLevel >= f.maxFortify ? 'floor-3d-gold' : ''} p-4 rounded-2xl text-slate-900 space-y-2">
-                    <div class="flex justify-between items-center">
-                      <span class="font-extrabold text-sm text-slate-900">${lang === 'zh' ? f.title_zh : f.title_en}</span>
-                      <span class="text-xs font-bold px-2 py-0.5 rounded-full ${f.fortifyLevel >= f.maxFortify ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-700'}">
-                        ${f.fortifyLevel >= f.maxFortify ? '🏆 ' + (lang === 'zh' ? '金砖加固' : 'Fortified') : `${f.fortifyLevel}/${f.maxFortify}`}
-                      </span>
+                  <!-- 左右剖面结构：左侧理念，右侧具体行动Checklist -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-900/10">
+                      <p class="text-xs text-amber-900/80 font-medium leading-relaxed">${lang === 'zh' ? f.desc_zh : f.desc_en}</p>
                     </div>
 
-                    <ul class="text-xs text-slate-700 space-y-1 pl-4 list-disc font-medium">
-                      ${f.logs.map(l => `<li>${l}</li>`).join('')}
-                    </ul>
-
-                    <div class="pt-1">
-                      <button onclick="fortifyFloor('${tower.id}', '${f.id}')" class="w-full py-1.5 text-xs bg-slate-900 text-white rounded-lg font-bold active:scale-95 transition">
-                        ⚡ ${lang === 'zh' ? '同类感悟：贴砖加固' : 'Reinforce Floor'}
-                      </button>
+                    <div class="bg-white p-3 rounded-xl border border-amber-900/20 space-y-1">
+                      <span class="text-[10px] font-black text-amber-800 uppercase tracking-wider block mb-1">Checklist / SOP:</span>
+                      ${f.items.map(item => `
+                        <div class="flex items-center space-x-1.5 text-xs text-amber-950 font-medium">
+                          <span class="text-amber-600 font-bold">✓</span>
+                          <span>${item}</span>
+                        </div>
+                      `).join('')}
                     </div>
                   </div>
-                `).join('')}
 
-                <!-- 楼层地基 -->
-                <div class="bg-slate-800 border-2 border-slate-700 p-3 rounded-2xl text-center text-slate-400 font-bold text-xs">
-                  🧱 ${lang === 'zh' ? '小区地基 BASE' : 'DISTRICT BASE'}
+                  <!-- 交互按钮：加固楼层 -->
+                  <button onclick="fortifyFloor('${tower.id}', '${f.id}')" class="w-full mt-3 py-1.5 text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold rounded-xl border border-amber-900/30 transition">
+                    🧱 ${lang === 'zh' ? '注入感悟 / 增加 Checklist 贴砖加固' : 'Reinforce / Add Check Item'}
+                  </button>
                 </div>
+              `).join('')}
+            </div>
 
-              </div>
+            <!-- 地基看板 -->
+            <div class="mt-4 p-4 bg-amber-900 text-amber-100 rounded-2xl text-center shadow-lg">
+              <p class="font-handwritten text-xl">Better Me →</p>
+              <p class="text-xs font-bold text-amber-200 mt-1">${lang === 'zh' ? '健康不是终点，而是一种生活方式。' : 'Health is not a destination, it is a lifestyle.'}</p>
             </div>
           </div>
         `;
       } else if (currentTab === 'locker') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-black text-white">📦 ${lang === 'zh' ? '即时快递柜' : 'Express Locker'}</h2>
+            <h2 class="text-lg font-black text-amber-950">📦 ${lang === 'zh' ? '即时快递柜' : 'Express Locker'}</h2>
             <div class="space-y-3">
               ${appData.expressLocker.map(item => `
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-xs text-slate-200 flex justify-between items-center shadow-md">
+                <div class="floor-section p-4 rounded-2xl text-xs text-amber-900 flex justify-between items-center">
                   <span>${lang === 'zh' ? item.text_zh : item.text_en}</span>
-                  <button onclick="claimLocker('${item.id}')" class="text-xs bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-bold ml-2">${lang === 'zh' ? '砌入楼层' : 'Attach'}</button>
+                  <button onclick="claimLocker()" class="text-xs bg-amber-800 text-amber-50 px-2.5 py-1 rounded-lg font-bold ml-2">${lang === 'zh' ? '砌入大楼' : 'Attach'}</button>
                 </div>
               `).join('')}
             </div>
-            <button onclick="addLockerItem()" class="w-full py-3 bg-indigo-600 text-white rounded-2xl text-xs font-bold shadow-lg active:scale-95 transition">
+            <button onclick="addLockerItem()" class="w-full py-3 bg-amber-800 text-amber-50 rounded-2xl text-xs font-bold shadow active:scale-95 transition">
               + ${lang === 'zh' ? '存入闪念包裹' : 'Deposit Thought'}
             </button>
           </div>
@@ -252,17 +310,17 @@
       } else if (currentTab === 'mystery') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-black text-white">❓ ${lang === 'zh' ? '问答施工箱' : 'Mystery Box'}</h2>
+            <h2 class="text-lg font-black text-amber-950">❓ ${lang === 'zh' ? '问答施工箱' : 'Mystery Box'}</h2>
             <div class="space-y-3">
               ${appData.mysteryBox.map(m => `
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-md">
-                  <p class="text-xs font-bold text-indigo-300">Q: ${lang === 'zh' ? m.q_zh : m.q_en}</p>
+                <div class="floor-section p-4 rounded-2xl space-y-2">
+                  <p class="text-xs font-black text-amber-900">Q: ${lang === 'zh' ? m.q_zh : m.q_en}</p>
                   ${m.isSolved ? `
-                    <div class="p-3 bg-emerald-950/80 border border-emerald-700/80 rounded-xl text-xs text-emerald-200">
+                    <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-900">
                       <strong>A:</strong> ${lang === 'zh' ? m.a_zh : m.a_en}
                     </div>
                   ` : `
-                    <button onclick="solveMystery('${m.id}')" class="text-xs bg-indigo-900 text-indigo-200 px-3 py-1.5 rounded-lg font-bold">${lang === 'zh' ? '破解转换为金砖 →' : 'Solve & Get Brick →'}</button>
+                    <button onclick="solveMystery('${m.id}')" class="text-xs bg-amber-200 text-amber-900 px-3 py-1.5 rounded-lg font-bold">${lang === 'zh' ? '破解解惑转换为金砖 →' : 'Solve & Get Brick →'}</button>
                   `}
                 </div>
               `).join('')}
@@ -272,14 +330,14 @@
       } else if (currentTab === 'garden') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-black text-white">🏡 ${lang === 'zh' ? '身份愿景花园' : 'Personal Garden'}</h2>
-            <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-3xl text-white space-y-5 shadow-2xl">
+            <h2 class="text-lg font-black text-amber-950">🌿 ${lang === 'zh' ? '身份愿景花园' : 'Personal Garden'}</h2>
+            <div class="bg-gradient-to-br from-amber-800 to-amber-950 p-6 rounded-3xl text-amber-50 space-y-5 shadow-2xl">
               <div>
-                <span class="text-xs font-extrabold opacity-75 uppercase tracking-wider">Who You Are</span>
+                <span class="text-xs font-black opacity-75 uppercase tracking-wider">Who You Are</span>
                 <p class="font-extrabold text-base mt-1">${lang === 'zh' ? appData.garden.whoIAm_zh : appData.garden.whoIAm_en}</p>
               </div>
-              <div class="border-t border-white/20 pt-4">
-                <span class="text-xs font-extrabold opacity-75 uppercase tracking-wider">Future Self</span>
+              <div class="border-t border-amber-700/50 pt-4">
+                <span class="text-xs font-black opacity-75 uppercase tracking-wider">Future Self</span>
                 <p class="font-extrabold text-base mt-1">${lang === 'zh' ? appData.garden.future_zh : appData.garden.future_en}</p>
               </div>
             </div>
@@ -288,15 +346,15 @@
       } else if (currentTab === 'archive') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-black text-white">🗺️ ${lang === 'zh' ? 'Archive 认知资产全景' : 'Master Archive'}</h2>
+            <h2 class="text-lg font-black text-amber-950">🗺️ ${lang === 'zh' ? 'Archive 地图一览' : 'Master Archive'}</h2>
             <div class="grid grid-cols-2 gap-3">
-              <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
-                <div class="text-3xl font-black text-indigo-400">${appData.towers.length}</div>
-                <div class="text-xs text-slate-400 mt-1">${lang === 'zh' ? '总建筑数' : 'Total Towers'}</div>
+              <div class="floor-section p-4 rounded-2xl text-center">
+                <div class="text-3xl font-black text-amber-800">${appData.towers.length}</div>
+                <div class="text-xs text-amber-900/70 mt-1">${lang === 'zh' ? '总系统大楼' : 'Total Systems'}</div>
               </div>
-              <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
-                <div class="text-3xl font-black text-amber-400">${appData.mysteryBox.filter(m => m.isSolved).length}</div>
-                <div class="text-xs text-slate-400 mt-1">${lang === 'zh' ? '已破解金砖' : 'Solved Bricks'}</div>
+              <div class="floor-section p-4 rounded-2xl text-center">
+                <div class="text-3xl font-black text-amber-600">${appData.mysteryBox.filter(m => m.isSolved).length}</div>
+                <div class="text-xs text-amber-900/70 mt-1">${lang === 'zh' ? '已攻克困惑' : 'Solved Mysteries'}</div>
               </div>
             </div>
           </div>
@@ -304,19 +362,21 @@
       }
     }
 
-    // 逻辑功能增加：直接建新楼层！
     function addNewFloor(towerId) {
-      const name = prompt(lang === 'zh' ? '请输入新楼层的主题名称（如：3楼 运动SOP）：' : 'Enter new floor title:');
-      if (name) {
+      const title = prompt(lang === 'zh' ? '请输入新楼层名称（如：心态调节）：' : 'Enter floor title:');
+      if (title) {
+        const desc = prompt(lang === 'zh' ? '请输入本层的核心理念描述：' : 'Enter floor description:') || '';
         const tower = appData.towers.find(t => t.id === towerId);
-        const newFloorNum = tower.floors.length + 1;
-        tower.floors.push({
+        tower.floors.unshift({
           id: Date.now().toString(),
-          title_zh: name.includes('楼') ? name : `${newFloorNum}楼：${name}`,
-          title_en: name,
-          fortifyLevel: 1,
-          maxFortify: 3,
-          logs: [lang === 'zh' ? '新楼层封顶建起' : 'New floor constructed']
+          num: tower.floors.length + 1,
+          title_zh: title,
+          title_en: title,
+          room_icon: '🪴',
+          desc_zh: desc,
+          desc_en: desc,
+          items: [lang === 'zh' ? '初始建楼 SOP 准则' : 'Initial Rule'],
+          fortified: false
         });
         saveData();
         render();
@@ -324,19 +384,19 @@
     }
 
     function fortifyFloor(towerId, floorId) {
-      const input = prompt(lang === 'zh' ? '请输入一条同类感悟/经验来贴砖加固：' : 'Enter an insight for this floor:');
-      if (input) {
+      const item = prompt(lang === 'zh' ? '请输入一条要加固填入的具体 Checklist 细则：' : 'Enter a new checklist item:');
+      if (item) {
         const tower = appData.towers.find(t => t.id === towerId);
         const floor = tower.floors.find(f => f.id === floorId);
-        floor.logs.push(input);
-        if (floor.fortifyLevel < floor.maxFortify) floor.fortifyLevel++;
+        floor.items.push(item);
+        floor.fortified = true;
         saveData();
         render();
       }
     }
 
     function addLockerItem() {
-      const input = prompt(lang === 'zh' ? '存入一条闪念/包裹：' : 'Deposit a quick thought:');
+      const input = prompt(lang === 'zh' ? '存入一条闪念/包裹：' : 'Deposit thought:');
       if (input) {
         appData.expressLocker.push({ id: Date.now().toString(), text_zh: input, text_en: input });
         saveData();
@@ -344,13 +404,13 @@
       }
     }
 
-    function claimLocker(id) {
-      alert(lang === 'zh' ? '请前往具体的大楼，在对应楼层点击“贴砖加固”将其填入！' : 'Go to a tower floor and click "Reinforce"!');
+    function claimLocker() {
+      alert(lang === 'zh' ? '请前往具体剖面大楼，在对应楼层点击“加固”将其砌入 Checklist！' : 'Go to dollhouse and click reinforce!');
     }
 
     function solveMystery(id) {
       const item = appData.mysteryBox.find(m => m.id === id);
-      const ans = prompt(lang === 'zh' ? '请输入答案与破解心得：' : 'Enter the solution:');
+      const ans = prompt(lang === 'zh' ? '请输入答案与破解心得：' : 'Enter solution:');
       if (ans) {
         item.a_zh = ans;
         item.a_en = ans;
@@ -361,14 +421,27 @@
     }
 
     function addNewTower() {
-      const name = prompt(lang === 'zh' ? '请输入新大楼名称（如：语言学习大楼）：' : 'Enter new tower name:');
+      const name = prompt(lang === 'zh' ? '请输入新剖面大楼名称（如：Finance System）：' : 'Enter new dollhouse name:');
       if (name) {
         appData.towers.push({
           id: Date.now().toString(),
           name_zh: name,
           name_en: name,
-          icon: '🏛️',
-          floors: [{ id: Date.now().toString(), title_zh: '1楼：地基与规则', title_en: '1F: Base & Rules', fortifyLevel: 1, maxFortify: 3, logs: ['新建大楼'] }]
+          version: 'v1.0',
+          vision_zh: '掌控核心资产与复利逻辑',
+          vision_en: 'Mastering core assets and compounding',
+          icon: '🏦',
+          floors: [{
+            id: Date.now().toString(),
+            num: 1,
+            title_zh: '地基与预算',
+            title_en: 'Base & Budget',
+            room_icon: '💰',
+            desc_zh: '控制现金流与应急准备金。',
+            desc_en: 'Control cashflow and emergency fund.',
+            items: ['预留6个月准备金'],
+            fortified: false
+          }]
         });
         saveData();
         render();
