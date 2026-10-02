@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>认知小区 Cognitive Neighborhood</title>
+  <link rel="manifest" href="/manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { -webkit-tap-highlight-color: transparent; }
+    .glow-gold { box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans pb-24">
+
+  <!-- 顶栏与语言切换器 -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center space-x-2">
+      <span class="text-xl">🏙️</span>
+      <h1 class="font-bold text-slate-900 text-lg" id="app-title">认知小区</h1>
+    </div>
+    <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200 active:scale-95 transition">
+      EN / 中文
+    </button>
+  </header>
+
+  <main class="max-w-md mx-auto p-4" id="main-container">
+    <!-- 内容将由 JavaScript 动态渲染 -->
+  </main>
+
+  <!-- 底部导航栏 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 px-3 flex justify-around items-center z-50 max-w-md mx-auto">
+    <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-medium text-indigo-600" id="nav-towers">
+      <span class="text-lg">🏢</span><span class="nav-label" data-zh="大楼" data-en="Towers">大楼</span>
+    </button>
+    <button onclick="switchTab('locker')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-locker">
+      <span class="text-lg">📦</span><span class="nav-label" data-zh="快递柜" data-en="Locker">快递柜</span>
+    </button>
+    <button onclick="switchTab('mystery')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-mystery">
+      <span class="text-lg">❓</span><span class="nav-label" data-zh="问答箱" data-en="Mystery">问答箱</span>
+    </button>
+    <button onclick="switchTab('garden')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-garden">
+      <span class="text-lg">🏡</span><span class="nav-label" data-zh="花园" data-en="Garden">花园</span>
+    </button>
+    <button onclick="switchTab('archive')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-archive">
+      <span class="text-lg">🗺️</span><span class="nav-label" data-zh="地图一览" data-en="Archive">地图一览</span>
+    </button>
+  </nav>
+
+  <script>
+    // 全局数据状态与 LocalStorage 支持
+    let lang = localStorage.getItem('cn_lang') || 'zh';
+    let currentTab = 'towers';
+    let selectedTowerId = null;
+
+    let defaultData = {
+      towers: [
+        {
+          id: 'body',
+          name_zh: '身材管理大楼',
+          name_en: 'Body Management',
+          icon: '🏃‍♀️',
+          floors: [
+            { id: 'f1', title_zh: '地基：作息与睡眠', title_en: 'Base: Sleep SOP', fortifyLevel: 2, maxFortify: 3, logs: ['睡眠<7小时影响训练发力', '11点前入睡恢复更快'] },
+            { id: 'f2', title_zh: '2楼：饮食与排卵期', title_en: 'Floor 2: Diet & Cycle', fortifyLevel: 3, maxFortify: 3, logs: ['排卵期吃复合碳水止甜食欲望', '先吃蛋白蔬菜再吃碳水', '晚8点后禁食水肿消退'] }
+          ]
+        },
+        {
+          id: 'finance',
+          name_zh: '财商投资大楼',
+          name_en: 'Wealth & Finance',
+          icon: '📈',
+          floors: [
+            { id: 'f3', title_zh: '地基：资产配置', title_en: 'Base: Asset Allocation', fortifyLevel: 1, maxFortify: 3, logs: ['预留6个月应急准备金'] }
+          ]
+        }
+      ],
+      expressLocker: [
+        { id: 'e1', text_zh: '深蹲时脚尖稍外展可以缓解膝盖压力', text_en: 'Slightly flaring toes during squats relieves knee pressure' }
+      ],
+      mysteryBox: [
+        { id: 'm1', q_zh: '为什么排卵期前一周总想暴饮暴食？', q_en: 'Why cravings hit before ovulation?', a_zh: '黄体期孕酮上升引发血糖波动，补充低GI碳水即可平抑。', a_en: 'Progesterone causes glucose swings; low-GI carbs help.', isSolved: true }
+      ],
+      garden: {
+        whoIAm_zh: '已坚持健康饮食 30 天的执行者',
+        whoIAm_en: 'Healthy eating streak: 30 days',
+        future_zh: '拥有体脂率 18% 并且自由做 10 个引体向上',
+        future_en: 'Target 18% body fat & 10 pull-ups'
+      }
+    };
+
+    let appData = JSON.parse(localStorage.getItem('cn_app_data')) || defaultData;
+
+    function saveData() {
+      localStorage.setItem('cn_app_data', JSON.stringify(appData));
+      localStorage.setItem('cn_lang', lang);
+    }
+
+    function toggleLanguage() {
+      lang = lang === 'zh' ? 'en' : 'zh';
+      saveData();
+      render();
+    }
+
+    function switchTab(tab, towerId = null) {
+      currentTab = tab;
+      if (towerId) selectedTowerId = towerId;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-indigo-600');
+        btn.classList.add('text-slate-400');
+      });
+      const activeNav = document.getElementById(`nav-${tab === 'tower_detail' ? 'towers' : tab}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-slate-400');
+        activeNav.classList.add('text-indigo-600');
+      }
+      render();
+    }
+
+    function render() {
+      // 更新导航栏文字
+      document.querySelectorAll('.nav-label').forEach(el => {
+        el.innerText = el.getAttribute(`data-${lang}`);
+      });
+      document.getElementById('app-title').innerText = lang === 'zh' ? '认知小区' : 'Cognitive Neighborhood';
+
+      const container = document.getElementById('main-container');
+
+      if (currentTab === 'towers') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">${lang === 'zh' ? '选择你的建筑' : 'Select Your Tower'}</h2>
+            ${appData.towers.map(t => `
+              <div onclick="switchTab('tower_detail', '${t.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between cursor-pointer active:scale-98 transition">
+                <div class="flex items-center space-x-3">
+                  <div class="text-3xl p-2 bg-slate-100 rounded-xl">${t.icon}</div>
+                  <div>
+                    <h3 class="font-bold text-slate-800">${lang === 'zh' ? t.name_zh : t.name_en}</h3>
+                    <p class="text-xs text-slate-400">${t.floors.length}${lang === 'zh' ? '层楼层 / 已加固' : 'Floors / Reinforced'}</p>
+                  </div>
+                </div>
+                <span class="text-slate-300">➔</span>
+              </div>
+            `).join('')}
+            <button onclick="addNewTower()" class="w-full py-3 bg-dashed border-2 border-dashed border-indigo-200 text-indigo-600 rounded-2xl font-medium text-sm flex items-center justify-center space-x-1 active:bg-indigo-50">
+              <span>+</span><span>${lang === 'zh' ? '新建大楼' : 'Create New Tower'}</span>
+            </button>
+          </div>
+        `;
+      } else if (currentTab === 'tower_detail') {
+        const tower = appData.towers.find(t => t.id === selectedTowerId);
+        container.innerHTML = `
+          <div>
+            <button onclick="switchTab('towers')" class="text-xs text-indigo-600 font-medium mb-3 flex items-center">
+              ← ${lang === 'zh' ? '返回小区地图' : 'Back to District'}
+            </button>
+            <div class="flex items-center space-x-2 mb-4">
+              <span class="text-2xl">${tower.icon}</span>
+              <h2 class="text-xl font-bold text-slate-900">${lang === 'zh' ? tower.name_zh : tower.name_en}</h2>
+            </div>
+            <div class="space-y-3">
+              ${tower.floors.map(f => `
+                <div class="p-4 rounded-2xl bg-white border ${f.fortifyLevel >= f.maxFortify ? 'border-amber-300 glow-gold bg-gradient-to-r from-amber-50/30 to-white' : 'border-slate-200'} space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="font-bold text-sm text-slate-800">${lang === 'zh' ? f.title_zh : f.title_en}</span>
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${f.fortifyLevel >= f.maxFortify ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">
+                      ${f.fortifyLevel >= f.maxFortify ? '🏆 ' + (lang === 'zh' ? '金砖加固' : 'Fortified') : `${f.fortifyLevel}/${f.maxFortify}`}
+                    </span>
+                  </div>
+                  <ul class="text-xs text-slate-600 space-y-1 pl-4 list-disc">
+                    ${f.logs.map(l => `<li>${l}</li>`).join('')}
+                  </ul>
+                  <button onclick="fortifyFloor('${tower.id}', '${f.id}')" class="w-full mt-2 py-1.5 text-xs bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 active:scale-95 transition">
+                    + ${lang === 'zh' ? '注入新感悟加固本层' : 'Inject Insight to Fortify'}
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'locker') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">📦 ${lang === 'zh' ? '即时快递柜' : 'Express Locker'}</h2>
+            <div class="space-y-2">
+              ${appData.expressLocker.map(item => `
+                <div class="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-700 flex justify-between items-center">
+                  <span>${lang === 'zh' ? item.text_zh : item.text_en}</span>
+                  <span class="text-xs text-indigo-500 font-medium ml-2 cursor-pointer" onclick="claimLocker('${item.id}')">${lang === 'zh' ? '砌入楼房' : 'Attach'}</span>
+                </div>
+              `).join('')}
+            </div>
+            <button onclick="addLockerItem()" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-medium shadow-md active:scale-95 transition">
+              + ${lang === 'zh' ? '存入闪念包裹' : 'Deposit Quick Thought'}
+            </button>
+          </div>
+        `;
+      } else if (currentTab === 'mystery') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">❓ ${lang === 'zh' ? '问答施工箱' : 'Mystery Box'}</h2>
+            <div class="space-y-3">
+              ${appData.mysteryBox.map(m => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                  <p class="text-xs font-bold text-slate-800">Q: ${lang === 'zh' ? m.q_zh : m.q_en}</p>
+                  ${m.isSolved ? `
+                    <div class="p-2 bg-emerald-50 rounded-lg text-xs text-emerald-800 border border-emerald-100">
+                      <strong>A:</strong> ${lang === 'zh' ? m.a_zh : m.a_en}
+                    </div>
+                  ` : `
+                    <button onclick="solveMystery('${m.id}')" class="text-xs text-indigo-600 font-medium">${lang === 'zh' ? '点击破解转换为金砖 →' : 'Solve & Convert to Brick →'}</button>
+                  `}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'garden') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">🏡 ${lang === 'zh' ? '身份愿景花园' : 'Personal Garden'}</h2>
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-2xl text-white space-y-4 shadow-lg">
+              <div>
+                <span class="text-xs opacity-80 uppercase tracking-wider">Who You Are</span>
+                <p class="font-bold text-sm mt-1">${lang === 'zh' ? appData.garden.whoIAm_zh : appData.garden.whoIAm_en}</p>
+              </div>
+              <div class="border-t border-white/20 pt-3">
+                <span class="text-xs opacity-80 uppercase tracking-wider">Future Self</span>
+                <p class="font-bold text-sm mt-1">${lang === 'zh' ? appData.garden.future_zh : appData.garden.future_en}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (currentTab === 'archive') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">🗺️ ${lang === 'zh' ? 'Archive 认知总览' : 'Master Archive'}</h2>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                <div class="text-2xl font-bold text-indigo-600">${appData.towers.length}</div>
+                <div class="text-xs text-slate-400">${lang === 'zh' ? '建起的大楼' : 'Towers Built'}</div>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                <div class="text-2xl font-bold text-amber-500">${appData.mysteryBox.filter(m => m.isSolved).length}</div>
+                <div class="text-xs text-slate-400">${lang === 'zh' ? '攻克的疑惑' : 'Solved Mysteries'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 交互辅助逻辑
+    function fortifyFloor(towerId, floorId) {
+      const input = prompt(lang === 'zh' ? '请输入一条同类感悟/经验：' : 'Enter an insight for this floor:');
+      if (input) {
+        const tower = appData.towers.find(t => t.id === towerId);
+        const floor = tower.floors.find(f => f.id === floorId);
+        floor.logs.push(input);
+        if (floor.fortifyLevel < floor.maxFortify) floor.fortifyLevel++;
+        saveData();
+        render();
+      }
+    }
+
+    function addLockerItem() {
+      const input = prompt(lang === 'zh' ? '存入一条闪念/想法：' : 'Deposit a quick thought:');
+      if (input) {
+        appData.expressLocker.push({ id: Date.now().toString(), text_zh: input, text_en: input });
+        saveData();
+        render();
+      }
+    }
+
+    function claimLocker(id) {
+      alert(lang === 'zh' ? '请前往对应大楼的楼层点击“加固”将其砌入！' : 'Please go to a tower floor and click "Fortify" to attach!');
+    }
+
+    function solveMystery(id) {
+      const item = appData.mysteryBox.find(m => m.id === id);
+      const ans = prompt(lang === 'zh' ? '请输入答案与破解心得：' : 'Enter the answer/solution:');
+      if (ans) {
+        item.a_zh = ans;
+        item.a_en = ans;
+        item.isSolved = true;
+        saveData();
+        render();
+      }
+    }
+
+    function addNewTower() {
+      const name = prompt(lang === 'zh' ? '请输入新大楼名称（如：语言学习大楼）：' : 'Enter new tower name:');
+      if (name) {
+        appData.towers.push({
+          id: Date.now().toString(),
+          name_zh: name,
+          name_en: name,
+          icon: '🏛️',
+          floors: [{ id: Date.now().toString(), title_zh: '地基：核心规则', title_en: 'Base: Core Rules', fortifyLevel: 1, maxFortify: 3, logs: ['初始建立'] }]
+        });
+        saveData();
+        render();
+      }
+    }
+
+    // 页面初始化渲染
+    render();
+  </script>
+</body>
+</html>
