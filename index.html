@@ -1,743 +1,1141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cognitive District 认知小区</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap');
-    
-    body { 
-      -webkit-tap-highlight-color: transparent; 
-      background-color: #f4efe6; 
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    }
-    
-    .font-handwritten { font-family: 'Caveat', cursive; }
-
-    /* 经典手绘插画风卡片 */
-    .floor-section {
-      background: #fefcf8;
-      border: 3px solid #78350f;
-      box-shadow: 4px 6px 0px #78350f;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .modal-backdrop {
-      background-color: rgba(69, 26, 3, 0.4);
-      backdrop-filter: blur(4px);
-    }
-  </style>
-</head>
-<body class="text-amber-950 pb-24 min-h-screen">
-
-  <!-- 顶栏：多用户登录状态 + 语言切换 -->
-  <header class="sticky top-0 z-50 bg-[#f4efe6]/95 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-2.5 flex justify-between items-center shadow-sm">
-    <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('towers')">
-      <span class="text-2xl">🏡</span>
-      <div>
-        <h1 class="font-extrabold text-amber-950 text-base leading-none" id="app-title">Cognitive District</h1>
-        <div class="flex items-center space-x-1 mt-0.5">
-          <span class="text-[10px] font-bold text-amber-800/80" id="user-badge">👤 User: Alex</span>
-          <button onclick="openAuthModal()" class="text-[10px] font-bold text-amber-700 underline hover:text-amber-950 ml-1">
-            [Switch]
-          </button>
-        </div>
-      </div>
-    </div>
-    <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1 text-xs font-bold rounded-full bg-amber-200 text-amber-900 border border-amber-400 active:scale-95 transition shadow-sm">
-      EN / 中
-    </button>
-  </header>
-
-  <main class="max-w-md mx-auto p-4" id="main-container">
-    <!-- 动态渲染区 -->
-  </main>
-
-  <!-- 底部导航栏 -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-[#fefcf8] border-t-2 border-amber-900 py-2 px-3 flex justify-around items-center z-40 max-w-md mx-auto shadow-2xl">
-    <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-800" id="nav-towers">
-      <span class="text-xl">🏢</span><span class="nav-label" id="lbl-towers">Towers</span>
-    </button>
-    <button onclick="switchTab('locker')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-locker">
-      <span class="text-xl">📦</span><span class="nav-label" id="lbl-locker">Locker</span>
-    </button>
-    <button onclick="switchTab('mystery')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-mystery">
-      <span class="text-xl">❓</span><span class="nav-label" id="lbl-mystery">Mystery</span>
-    </button>
-    <button onclick="switchTab('garden')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-garden">
-      <span class="text-xl">🌿</span><span class="nav-label" id="lbl-garden">Garden</span>
-    </button>
-    <button onclick="switchTab('archive')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-900/40" id="nav-archive">
-      <span class="text-xl">🗺️</span><span class="nav-label" id="lbl-archive">Archive</span>
-    </button>
-  </nav>
-
-  <!-- 用户登录/切换弹窗 -->
-  <div id="auth-modal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
-    <div class="bg-[#fefcf8] border-3 border-amber-900 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b border-amber-900/20 pb-3">
-        <h3 class="font-black text-amber-950 text-lg flex items-center gap-2">
-          <span>👤</span> <span id="auth-modal-title">Switch Account / Private Space</span>
-        </h3>
-        <button onclick="closeAuthModal()" class="text-amber-900 font-bold text-lg hover:text-rose-600">✕</button>
-      </div>
-
-      <p class="text-xs text-amber-800 leading-relaxed" id="auth-modal-desc">
-        Each account has its own isolated private data space.
-      </p>
-
-      <div class="space-y-3">
-        <div>
-          <label class="text-xs font-bold text-amber-900 block mb-1" id="lbl-username">Username:</label>
-          <input type="text" id="username-input" placeholder="e.g. Alex" class="w-full px-3 py-2 border-2 border-amber-900/30 rounded-xl bg-amber-50 text-amber-950 font-bold focus:outline-none focus:border-amber-800 text-sm">
-        </div>
-
-        <button onclick="handleLogin()" class="w-full py-2.5 bg-amber-800 text-amber-50 rounded-xl font-extrabold text-sm border border-amber-950 shadow active:scale-95 transition">
-          <span id="btn-login-text">Login / Switch Space</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let lang = localStorage.getItem('cd_lang_v6') || 'en';
-    let currentUser = localStorage.getItem('cd_current_user_v6') || 'Alex';
-    let currentTab = 'towers';
-    let selectedTowerId = 'intl_student';
-
-    // 默认示例数据模版
-    const defaultTemplate = {
-      towers: [
-        {
-          id: 'intl_student',
-          icon: '🗽',
-          version: 'v1.0',
-          lockers: [
-            { id: 'l1', zh: '已收到 SSN 确认件，保存在安全柜', en: 'SSN confirmation received & secured' },
-            { id: 'l2', zh: '缺角大叔 (Trader Joe\'s) 购物清单备忘', en: 'Trader Joe\'s Grocery Checklist Memo' }
-          ],
-          mysteryBox: [
-            { id: 'm1', q_zh: '为什么 Food Truck 不收额外消费税？', a_zh: '因为餐车标价通常已包含税费，即买即吃。', q_en: 'Why no sales tax added at Food Trucks?', a_en: 'Food truck prices usually include sales tax in the total.' }
-          ],
-          garden: {
-            who_zh: '正在建立独立生活规则的国际生',
-            who_en: 'Intl student mastering local living rules',
-            future_zh: '精明自律、从容驾驭海外生活的自理达人',
-            future_en: 'A confident, independent global citizen'
-          },
-          zh: {
-            name: '国际生适应大楼',
-            slogan: '搞懂海外生活隐藏规则，避开消费与税收陷阱。',
-            vision: '无缝融入留学生活，精细化管理日常花销。',
-            floors: [
-              {
-                id: 'is_f3',
-                num: 3,
-                title: '消费税规避与避坑指南',
-                icon: '🧾',
-                desc: '掌握各超市与小摊的税收差异，不做冤大头。',
-                items: [
-                  '🚚 Food Truck (餐车)：通常标价即终价，无额外加税',
-                  '🎯 Target (超市)：未加工原始食物(生鲜/牛奶/面包)免税，但日用品与加工零食加税',
-                  '👕 衣物与鞋履税率：单件未满特定额度免税，超过比例不同',
-                  '🍎 Appletree (特色超市)：大曲奇饼干、Sandwich Hero 等手工加工品要收税，其余普通未加工杂货不用收税',
-                  '🛍️️ Trader Joe\'s (缺角大叔)：需按分类征税，加工食品/饮料/日用品结账时计算消费税'
-                ]
-              },
-              {
-                id: 'is_f2',
-                num: 2,
-                title: '租房与水电网搭建',
-                icon: '🛋️️',
-                desc: '搞定住所，建立安全的日常生活基底。',
-                items: ['确认 Wi-Fi 宽带开通', '办理网银与 SSN/ITIN', '购买租客保险']
-              }
-            ]
-          },
-          en: {
-            name: 'Intl Student Adaptation Building',
-            slogan: 'Master hidden local rules and avoid tax traps.',
-            vision: 'Seamless transition to study abroad life.',
-            floors: [
-              {
-                id: 'is_f3',
-                num: 3,
-                title: 'Sales Tax & Shopping Rules',
-                icon: '🧾',
-                desc: 'Know tax differences across food trucks, Target, and grocery stores.',
-                items: [
-                  '🚚 Food Truck: Listed price is usually final price without extra added tax',
-                  '🎯 Target: Unprocessed raw groceries exempt; household items & snacks taxable',
-                  '👕 Clothing Tax: Rates vary by total item price threshold',
-                  '🍎 Appletree Market: Giant cookies & Sandwich Hero (prepared items) are taxed; raw groceries exempt',
-                  '🛍️ Trader Joe\'s: Sales tax calculated at checkout for prepared food & supplies'
-                ]
-              },
-              {
-                id: 'is_f2',
-                num: 2,
-                title: 'Housing & Utilities',
-                icon: '🛋️',
-                desc: 'Set up apartment, internet, and essential services.',
-                items: ['Activate Wi-Fi broadband', 'Setup local bank account', 'Get renters insurance']
-              }
-            ]
-          }
-        },
-        {
-          id: 'health',
-          icon: '🏠',
-          version: 'v1.2',
-          lockers: [
-            { id: 'lh1', zh: '补剂补充提醒：维生素D3与鱼油', en: 'Supplement refilled: Vitamin D3 & Fish Oil' }
-          ],
-          mysteryBox: [
-            { id: 'mh1', q_zh: '如何保持每日高效精力？', a_zh: '固定睡眠时间并进行早晨阳光照射。', q_en: 'How to maintain daily high energy?', a_en: 'Maintain fixed sleep schedule and get morning sunlight.' }
-          ],
-          garden: {
-            who_zh: '专注体能与心理健康管理者',
-            who_en: 'Health & Energy system manager',
-            future_zh: '充沛精力、自律健康的行动者',
-            future_en: 'An energetic and disciplined individual'
-          },
-          zh: {
-            name: '健康管理大楼',
-            slogan: '细微习惯，构建宏大人生。',
-            vision: '成为更健康、更有能量的自己。',
-            floors: [
-              {
-                id: 'h_f2',
-                num: 2,
-                title: '心态与情绪管理',
-                icon: '🧘‍♀️',
-                desc: '保持积极，学会调节压力，建立内在稳定性。',
-                items: ['正念冥想 10分钟', '每日情绪与感恩记录']
-              },
-              {
-                id: 'h_f1',
-                num: 1,
-                title: '饮食习惯基座',
-                icon: '🥗',
-                desc: '营养均衡，控制热量，为身体提供稳定能量。',
-                items: ['保证足量蛋白质摄入', '每天饮水满 2000ml']
-              }
-            ]
-          },
-          en: {
-            name: 'Health Management Building',
-            slogan: 'Small habits build a big life.',
-            vision: 'Become a healthier, more energetic self.',
-            floors: [
-              {
-                id: 'h_f2',
-                num: 2,
-                title: 'Mindset & Emotion',
-                icon: '🧘‍♀️',
-                desc: 'Stay positive, regulate stress, build stability.',
-                items: ['Mindfulness Meditation 10 mins', 'Daily Journaling']
-              },
-              {
-                id: 'h_f1',
-                num: 1,
-                title: 'Diet System Base',
-                icon: '🥗',
-                desc: 'Balanced nutrition and steady energy.',
-                items: ['Sufficient Protein Intake', '2000ml Water Daily']
-              }
-            ]
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognitive District - Private Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', 'Noto Sans SC', sans-serif;
+            background-color: #fdfbf7;
+            color: #4a3e3d;
         }
-      ]
-    };
+        .font-hand {
+            font-family: 'Caveat', cursive;
+        }
+        /* Hand-drawn aesthetic borders & shadows */
+        .hand-card {
+            border: 2px solid #5c4a42;
+            border-radius: 18px 22px 20px 24px / 22px 18px 24px 20px;
+            box-shadow: 4px 5px 0px #5c4a42;
+            transition: all 0.2s ease;
+        }
+        .hand-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 7px 0px #5c4a42;
+        }
+        .hand-btn {
+            border: 2px solid #5c4a42;
+            border-radius: 12px 16px 14px 18px / 14px 12px 18px 16px;
+            box-shadow: 3px 3px 0px #5c4a42;
+            transition: all 0.15s ease;
+        }
+        .hand-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #5c4a42;
+        }
+        .hand-input {
+            border: 2px solid #5c4a42;
+            border-radius: 12px;
+            outline: none;
+        }
+        .hand-input:focus {
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1e9db;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c2b29d;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
 
-    // 读取特定用户的数据
-    function loadUserData(username) {
-      const key = `cd_app_data_v6_${username.toLowerCase()}`;
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        return JSON.parse(saved);
-      } else {
-        const newData = JSON.parse(JSON.stringify(defaultTemplate));
-        localStorage.setItem(key, JSON.stringify(newData));
-        return newData;
-      }
-    }
+    <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="hand-card bg-[#fffcf7] p-8 max-w-md w-full relative">
+            <div class="text-center mb-6">
+                <div class="text-5xl mb-2">🏡</div>
+                <h2 id="authTitle" class="text-3xl font-extrabold text-[#5c4a42]">Cognitive District</h2>
+                <p id="authSubtitle" class="text-sm text-stone-600 mt-1">Enter your Private Workspace</p>
+            </div>
 
-    let appData = loadUserData(currentUser);
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label id="lblUsername" class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Username / Workspace ID</label>
+                    <input type="text" id="usernameInput" required placeholder="e.g. Alex, Taylor" class="hand-input w-full p-3 bg-white text-stone-800 font-bold text-lg" />
+                </div>
+                <div>
+                    <label id="lblPasscode" class="block text-xs font-bold uppercase tracking-wider text-stone-600 mb-1">Passcode (Optional)</label>
+                    <input type="password" id="passwordInput" placeholder="••••••••" class="hand-input w-full p-3 bg-white text-stone-800 text-lg" />
+                </div>
+                
+                <button type="submit" class="hand-btn w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3 text-lg flex items-center justify-center gap-2">
+                    <span>🔓</span> <span id="btnEnterWorkspace">Enter Private Workspace</span>
+                </button>
+            </form>
 
-    function saveData() {
-      const key = `cd_app_data_v6_${currentUser.toLowerCase()}`;
-      localStorage.setItem(key, JSON.stringify(appData));
-      localStorage.setItem('cd_current_user_v6', currentUser);
-      localStorage.setItem('cd_lang_v6', lang);
-    }
-
-    function toggleLanguage() {
-      lang = lang === 'en' ? 'zh' : 'en';
-      saveData();
-      render();
-    }
-
-    function switchTab(tab, towerId = null) {
-      currentTab = tab;
-      if (towerId) selectedTowerId = towerId;
-
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('text-amber-800');
-        btn.classList.add('text-amber-900/40');
-      });
-      const activeTabId = (tab === 'tower_detail') ? 'towers' : tab;
-      const activeNav = document.getElementById(`nav-${activeTabId}`);
-      if (activeNav) {
-        activeNav.classList.remove('text-amber-900/40');
-        activeNav.classList.add('text-amber-800');
-      }
-      render();
-    }
-
-    function render() {
-      document.getElementById('lbl-towers').innerText = lang === 'zh' ? '大楼' : 'Towers';
-      document.getElementById('lbl-locker').innerText = lang === 'zh' ? '快递柜' : 'Locker';
-      document.getElementById('lbl-mystery').innerText = lang === 'zh' ? '问答箱' : 'Mystery';
-      document.getElementById('lbl-garden').innerText = lang === 'zh' ? '花园' : 'Garden';
-      document.getElementById('lbl-archive').innerText = lang === 'zh' ? '全景' : 'Archive';
-      document.getElementById('app-title').innerText = lang === 'zh' ? '认知小区' : 'Cognitive District';
-      document.getElementById('user-badge').innerText = `👤 ${currentUser}`;
-
-      const container = document.getElementById('main-container');
-
-      // 选中的当前大楼
-      let activeTower = appData.towers.find(t => t.id === selectedTowerId);
-      if (!activeTower && appData.towers.length > 0) {
-        activeTower = appData.towers[0];
-        selectedTowerId = activeTower.id;
-      }
-
-      // 页面 1：大楼列表 (Towers)
-      if (currentTab === 'towers') {
-        container.innerHTML = `
-          <div class="space-y-4">
-            <h2 class="text-xs font-black text-amber-900/60 uppercase tracking-widest flex justify-between items-center">
-              <span>${lang === 'zh' ? '我的建筑群' : 'My Dollhouses'}</span>
-              <span class="text-[10px] text-amber-800/80">${lang === 'zh' ? '点击大楼进入内部' : 'Click to inspect'}</span>
-            </h2>
-
-            ${appData.towers.map(t => {
-              const data = t[lang];
-              return `
-                <div class="floor-section p-5 rounded-2xl flex items-center justify-between hover:bg-amber-50 relative">
-                  <div class="flex items-center space-x-4 cursor-pointer flex-1" onclick="openTower('${t.id}')">
-                    <span class="text-4xl">${t.icon}</span>
-                    <div>
-                      <h3 class="font-black text-amber-950 text-base flex items-center gap-2">
-                        ${data.name} 
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">${t.version}</span>
-                      </h3>
-                      <p class="text-xs text-amber-800/70 mt-1">${data.floors.length}${lang === 'zh' ? '层房间' : 'Floors'}</p>
-                    </div>
-                  </div>
-                  
-                  <div class="flex items-center space-x-2">
-                    <button onclick="deleteTower(event, '${t.id}')" class="text-xs text-rose-700 bg-rose-100 hover:bg-rose-200 px-2.5 py-1 rounded-lg font-bold border border-rose-300">
-                      🗑️ ${lang === 'zh' ? '拆除' : 'Delete'}
+            <div class="mt-6 pt-4 border-t-2 border-dashed border-stone-300">
+                <p id="quickDemoTitle" class="text-xs text-center font-bold text-stone-500 uppercase tracking-wider mb-2">Quick Demo Accounts</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="quickLogin('Alex')" class="hand-btn bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold py-2">
+                        👤 Alex's Space
                     </button>
-                    <span onclick="openTower('${t.id}')" class="text-amber-900 font-extrabold text-xl cursor-pointer">➔</span>
-                  </div>
+                    <button onclick="quickLogin('Taylor')" class="hand-btn bg-sky-100 hover:bg-sky-200 text-sky-900 text-xs font-bold py-2">
+                        👤 Taylor's Space
+                    </button>
                 </div>
-              `;
-            }).join('')}
-
-            <button onclick="addNewTower()" class="w-full py-4 border-2 border-dashed border-amber-800/40 text-amber-900 rounded-2xl font-black text-sm flex items-center justify-center space-x-2 bg-amber-100/50 active:bg-amber-200 transition">
-              <span class="text-xl">+</span>
-              <span>${lang === 'zh' ? '设计新大楼' : 'Design New Building'}</span>
-            </button>
-          </div>
-        `;
-      } 
-      // 页面 2：大楼内部视图 (Tower Detail)
-      else if (currentTab === 'tower_detail') {
-        if (!activeTower) { switchTab('towers'); return; }
-        const data = activeTower[lang];
-
-        container.innerHTML = `
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <button onclick="switchTab('towers')" class="text-xs text-amber-900 font-bold bg-amber-200/80 px-3 py-1.5 rounded-xl border border-amber-800/30">
-                ← ${lang === 'zh' ? '返回建筑群' : 'District Map'}
-              </button>
-              <button onclick="addNewFloor('${activeTower.id}')" class="text-xs bg-amber-800 text-amber-50 font-bold px-3 py-1.5 rounded-xl border border-amber-950 shadow">
-                + ${lang === 'zh' ? '加盖顶楼新层' : 'Build Floor'}
-              </button>
             </div>
+            
+            <p id="authNote" class="text-xs text-stone-500 text-center mt-4 italic">
+                🔒 Private & Isolated: You will ONLY see your own customized towers.
+            </p>
+        </div>
+    </div>
 
-            <div class="bg-amber-100 border-3 border-amber-900 p-5 rounded-3xl mb-5 text-center relative shadow-md">
-              <div class="font-handwritten text-2xl text-amber-900 font-bold">${data.slogan}</div>
-              <h2 class="text-2xl font-black text-amber-950 mt-1">${data.name}</h2>
-              <p class="text-xs text-amber-900 mt-2 font-bold bg-amber-200/60 py-1 px-3 rounded-lg inline-block">
-                🎯 ${lang === 'zh' ? '愿景' : 'Vision'}: ${data.vision}
-              </p>
-            </div>
-
-            <div class="space-y-4">
-              ${data.floors.map((f, idx) => `
-                <div class="floor-section rounded-2xl p-4 relative">
-                  <div class="flex justify-between items-center border-b border-amber-900/10 pb-2 mb-3">
-                    <div class="flex items-center space-x-2">
-                      <span class="text-2xl">${f.icon || '🏠'}</span>
-                      <h3 class="font-black text-amber-950 text-base">${f.num}.${f.title}</h3>
-                    </div>
-                    <div class="flex items-center space-x-1.5">
-                      <button onclick="editFloorHeader('${activeTower.id}', '${f.id}')" class="text-[10px] text-amber-900 bg-amber-200 hover:bg-amber-300 px-2 py-0.5 rounded font-bold border border-amber-400">
-                        ✏️ ${lang === 'zh' ? '编辑' : 'Edit'}
-                      </button>
-                      <button onclick="deleteFloor('${activeTower.id}', '${f.id}')" class="text-[10px] text-rose-700 bg-rose-100 hover:bg-rose-200 px-2 py-0.5 rounded font-bold border border-rose-300">
-                        🗑 ${lang === 'zh' ? '删除' : 'Del'}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="space-y-2">
-                    <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-900/10">
-                      <p class="text-xs text-amber-900 font-medium leading-relaxed">${f.desc}</p>
-                    </div>
-
-                    <div class="bg-white p-3 rounded-xl border border-amber-900/20 space-y-2">
-                      <span class="text-[10px] font-black text-amber-800 uppercase tracking-wider block">${lang === 'zh' ? '清单 / 细则卡片' : 'Checklist Items'}:</span>
-                      ${f.items.map((item, itemIdx) => `
-                        <div class="flex items-center justify-between text-xs text-amber-950 font-semibold bg-amber-50/50 p-1.5 rounded-lg border border-amber-900/10">
-                          <div class="flex items-start space-x-2 flex-1 mr-2">
-                            <span class="text-amber-600 font-bold mt-0.5">✓</span>
-                            <span>${item}</span>
-                          </div>
-                          <div class="flex items-center space-x-1">
-                            <button onclick="editItem('${activeTower.id}', '${f.id}', ${itemIdx})" class="text-[10px] text-amber-800 bg-amber-200/80 px-1.5 py-0.5 rounded font-bold">✏️</button>
-                            <button onclick="deleteItem('${activeTower.id}', '${f.id}', ${itemIdx})" class="text-[10px] text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded font-bold">🗑️</button>
-                          </div>
-                        </div>
-                      `).join('')}
-                    </div>
-                  </div>
-
-                  <button onclick="addItemToFloor('${activeTower.id}', '${f.id}')" class="w-full mt-3 py-2 text-xs bg-amber-100 hover:bg-amber-200 text-amber-950 font-black rounded-xl border border-amber-900/30 transition">
-                    🧱 ${lang === 'zh' ? '+ 新增贴砖 / 细则' : '+ Add Item Card'}
-                  </button>
+    <header class="bg-[#f4ebd9] border-b-2 border-[#5c4a42] sticky top-0 z-40 px-4 py-3 shadow-sm">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">🏠</span>
+                <div>
+                    <h1 class="font-extrabold text-xl text-[#5c4a42] leading-none flex items-center gap-2">
+                        <span>Cognitive District</span>
+                        <span id="workspaceBadge" class="bg-amber-200 text-amber-900 text-xs px-2 py-0.5 rounded-full border border-amber-400 font-bold">Workspace</span>
+                    </h1>
+                    <p id="headerTagline" class="text-xs text-stone-600 font-medium mt-0.5">Your Private Mind & Adaptation Dollhouse</p>
                 </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      } 
-      // 页面 3：快递柜 (Locker - 绑定大楼)
-      else if (currentTab === 'locker') {
-        if (!activeTower) { container.innerHTML = `<div class="p-4 text-center font-bold text-amber-900">No building found.</div>`; return; }
-        container.innerHTML = `
-          <div class="space-y-4">
-            <div class="bg-amber-100 p-4 rounded-2xl border-2 border-amber-900 flex justify-between items-center">
-              <div>
-                <span class="text-xs text-amber-800 font-bold block">${lang === 'zh' ? '大楼专属快递柜' : 'Tower Express Locker'}</span>
-                <h3 class="text-lg font-black text-amber-950">${activeTower.icon} ${activeTower[lang].name}</h3>
-              </div>
-              <button onclick="addLockerItem('${activeTower.id}')" class="text-xs bg-amber-800 text-white font-bold px-3 py-1.5 rounded-xl border border-amber-950 shadow">
-                + ${lang === 'zh' ? '寄存包裹' : 'Store Parcel'}
-              </button>
             </div>
 
-            <div class="space-y-2">
-              ${(activeTower.lockers || []).map(item => `
-                <div class="floor-section p-3 rounded-xl flex justify-between items-center text-xs font-bold text-amber-950">
-                  <span>📦 ${item[lang] || item.en}</span>
-                  <button onclick="deleteLockerItem('${activeTower.id}', '${item.id}')" class="text-rose-700 bg-rose-100 px-2 py-1 rounded font-bold border border-rose-300">
-                    🗑️ ${lang === 'zh' ? '取出/删除' : 'Retrieve'}
-                  </button>
+            <!-- Top Controls -->
+            <div class="flex items-center gap-2">
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="hand-btn bg-white hover:bg-stone-100 text-stone-800 text-xs font-bold px-3 py-1.5 flex items-center gap-1">
+                    🌐 <span id="langLabel">EN / 中</span>
+                </button>
+
+                <!-- User Info & Logout -->
+                <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border-2 border-[#5c4a42]">
+                    <span class="text-sm">👤</span>
+                    <span id="currentUsername" class="font-bold text-sm text-stone-800">Guest</span>
+                    <button onclick="logout()" id="btnLogout" title="Log Out" class="ml-1 text-red-600 hover:text-red-800 font-bold text-xs bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded border border-red-300">
+                        Log Out
+                    </button>
                 </div>
-              `).join('')}
-              {(!activeTower.lockers || activeTower.lockers.length === 0) ? `<p class="text-xs text-center text-amber-800/60 py-4">${lang === 'zh' ? '柜子是空的' : 'Locker is empty'}</p>` : ''}
             </div>
-          </div>
-        `;
-      } 
-      // 页面 4：问答箱 (Mystery Box - 绑定大楼)
-      else if (currentTab === 'mystery') {
-        if (!activeTower) return;
-        container.innerHTML = `
-          <div class="space-y-4">
-            <div class="bg-amber-100 p-4 rounded-2xl border-2 border-amber-900">
-              <span class="text-xs text-amber-800 font-bold block">${lang === 'zh' ? '大楼知识问答箱' : 'Building Mystery Q&A'}</span>
-              <h3 class="text-lg font-black text-amber-950">${activeTower.icon} ${activeTower[lang].name}</h3>
-            </div>
+        </div>
+    </header>
 
-            <div class="space-y-3">
-              ${(activeTower.mysteryBox || []).map(mb => `
-                <div class="floor-section p-4 rounded-2xl space-y-2">
-                  <div class="flex justify-between items-start">
-                    <h4 class="font-black text-xs text-amber-950">❓ ${mb['q_' + lang] || mb.q_en}</h4>
-                    <button onclick="deleteMysteryItem('${activeTower.id}', '${mb.id}')" class="text-[10px] text-rose-700 bg-rose-100 px-2 py-0.5 rounded font-bold border border-rose-300">🗑️</button>
-                  </div>
-                  <p class="text-xs text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-900/10">💡 ${mb['a_' + lang] || mb.a_en}</p>
-                </div>
-              `).join('')}
-            </div>
-
-            <button onclick="addMysteryItem('${activeTower.id}')" class="w-full py-3 border-2 border-dashed border-amber-800/40 text-amber-900 rounded-xl font-bold text-xs bg-amber-100/50">
-              + ${lang === 'zh' ? '放入新疑问卡片' : 'Add New Q&A Card'}
-            </button>
-          </div>
-        `;
-      } 
-      // 页面 5：花园 (Garden - 绑定大楼)
-      else if (currentTab === 'garden') {
-        if (!activeTower) return;
-        const g = activeTower.garden || {};
-        container.innerHTML = `
-          <div class="space-y-4">
-            <div class="bg-amber-100 p-4 rounded-2xl border-2 border-amber-900">
-              <span class="text-xs text-amber-800 font-bold block">${lang === 'zh' ? '大楼角色花园' : 'Tower Persona Garden'}</span>
-              <h3 class="text-lg font-black text-amber-950">${activeTower.icon} ${activeTower[lang].name}</h3>
-            </div>
-
-            <div class="floor-section p-5 rounded-2xl space-y-4">
-              <div>
-                <span class="text-[10px] font-black text-amber-800 uppercase tracking-widest block">${lang === 'zh' ? '我是谁 (Who I Am)' : 'Current Persona'}:</span>
-                <p class="text-sm font-bold text-amber-950 mt-1">${g['who_' + lang] || g.who_en || 'Self-governing student'}</p>
-              </div>
-              <div class="border-t border-amber-900/10 pt-3">
-                <span class="text-[10px] font-black text-amber-800 uppercase tracking-widest block">${lang === 'zh' ? '走向的未来 (Future Vision)' : 'Future Self'}:</span>
-                <p class="text-sm font-bold text-amber-950 mt-1">${g['future_' + lang] || g.future_en || 'Independent master'}</p>
-              </div>
-              <button onclick="editGarden('${activeTower.id}')" class="w-full py-2 bg-amber-800 text-amber-50 font-bold text-xs rounded-xl border border-amber-950 shadow">
-                ✏️ ${lang === 'zh' ? '修改本大楼角色形象' : 'Edit Persona'}
-              </button>
-            </div>
-          </div>
-        `;
-      } 
-      // 页面 6：全景归档 (Archive)
-      else if (currentTab === 'archive') {
-        container.innerHTML = `
-          <div class="space-y-4">
-            <div class="bg-amber-100 p-4 rounded-2xl border-2 border-amber-900">
-              <h3 class="text-lg font-black text-amber-950">🗺️ ${lang === 'zh' ? '小区全景概览' : 'District Overview'}</h3>
-              <p class="text-xs text-amber-800 font-bold">${lang === 'zh' ? '当前工作区账号' : 'Active Account'}: ${currentUser}</p>
-            </div>
-
-            <div class="floor-section p-4 rounded-2xl space-y-3">
-              <div class="flex justify-between items-center text-xs font-bold text-amber-950">
-                <span>🏢 ${lang === 'zh' ? '大楼总数' : 'Total Buildings'}:</span>
-                <span class="text-amber-800 font-black text-base">${appData.towers.length}</span>
-              </div>
-              <div class="flex justify-between items-center text-xs font-bold text-amber-950 border-t border-amber-900/10 pt-2">
-                <span>📦 ${lang === 'zh' ? '快递柜包裹总数' : 'Total Locker Items'}:</span>
-                <span class="text-amber-800 font-black text-base">${appData.towers.reduce((acc, t) => acc + (t.lockers ? t.lockers.length : 0), 0)}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    // 交互逻辑函数：
-    function openTower(id) {
-      selectedTowerId = id;
-      currentTab = 'tower_detail';
-      render();
-    }
-
-    function deleteTower(event, towerId) {
-      event.stopPropagation();
-      if (confirm(lang === 'zh' ? '确定要拆除整栋大楼吗？拆除后不可恢复！' : 'Delete this entire building?')) {
-        appData.towers = appData.towers.filter(t => t.id !== towerId);
-        saveData();
-        render();
-      }
-    }
-
-    function deleteFloor(towerId, floorId) {
-      if (confirm(lang === 'zh' ? '确定要删除这个楼层吗？' : 'Delete this floor?')) {
-        const tower = appData.towers.find(t => t.id === towerId);
-        tower.zh.floors = tower.zh.floors.filter(f => f.id !== floorId);
-        tower.en.floors = tower.en.floors.filter(f => f.id !== floorId);
-        saveData();
-        render();
-      }
-    }
-
-    function editFloorHeader(towerId, floorId) {
-      const tower = appData.towers.find(t => t.id === towerId);
-      const fZh = tower.zh.floors.find(f => f.id === floorId);
-      const fEn = tower.en.floors.find(f => f.id === floorId);
-
-      const newTitle = prompt(lang === 'zh' ? '修改楼层标题：' : 'New floor title:', lang === 'zh' ? fZh.title : fEn.title);
-      if (newTitle !== null) {
-        const newDesc = prompt(lang === 'zh' ? '修改描述：' : 'New description:', lang === 'zh' ? fZh.desc : fEn.desc) || '';
-        if (lang === 'zh') fZh.title = newTitle, fZh.desc = newDesc;
-        else fEn.title = newTitle, fEn.desc = newDesc;
-        saveData();
-        render();
-      }
-    }
-
-    function deleteItem(towerId, floorId, itemIndex) {
-      const tower = appData.towers.find(t => t.id === towerId);
-      const fZh = tower.zh.floors.find(f => f.id === floorId);
-      const fEn = tower.en.floors.find(f => f.id === floorId);
-
-      if (confirm(lang === 'zh' ? '确定删除该条细则吗？' : 'Delete this item?')) {
-        if (fZh && fZh.items) fZh.items.splice(itemIndex, 1);
-        if (fEn && fEn.items) fEn.items.splice(itemIndex, 1);
-        saveData();
-        render();
-      }
-    }
-
-    function editItem(towerId, floorId, itemIndex) {
-      const tower = appData.towers.find(t => t.id === towerId);
-      const targetFloor = tower[lang].floors.find(f => f.id === floorId);
-      const oldVal = targetFloor.items[itemIndex];
-
-      const newVal = prompt(lang === 'zh' ? '编辑条目内容：' : 'Edit item card:', oldVal);
-      if (newVal !== null) {
-        const fZh = tower.zh.floors.find(f => f.id === floorId);
-        const fEn = tower.en.floors.find(f => f.id === floorId);
-        if (fZh) fZh.items[itemIndex] = newVal;
-        if (fEn) fEn.items[itemIndex] = newVal;
-        saveData();
-        render();
-      }
-    }
-
-    function addItemToFloor(towerId, floorId) {
-      const item = prompt(lang === 'zh' ? '请输入新的细则/卡片：' : 'New rule / item card:');
-      if (item) {
-        const tower = appData.towers.find(t => t.id === towerId);
-        const fZh = tower.zh.floors.find(f => f.id === floorId);
-        const fEn = tower.en.floors.find(f => f.id === floorId);
-        if (fZh) fZh.items.push(item);
-        if (fEn) fEn.items.push(item);
-        saveData();
-        render();
-      }
-    }
-
-    function addNewFloor(towerId) {
-      const title = prompt(lang === 'zh' ? '请输入新楼层名称：' : 'Floor title:');
-      if (title) {
-        const desc = prompt(lang === 'zh' ? '请输入描述：' : 'Description:') || '';
-        const tower = appData.towers.find(t => t.id === towerId);
-        const newId = Date.now().toString();
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
         
-        tower.zh.floors.unshift({ id: newId, num: tower.zh.floors.length + 1, title, icon: '🪴', desc, items: ['新法则/细则'] });
-        tower.en.floors.unshift({ id: newId, num: tower.en.floors.length + 1, title, icon: '🪴', desc, items: ['New Rule'] });
+        <!-- Navigation Tabs -->
+        <nav class="flex flex-wrap gap-2 border-b-2 border-stone-300 pb-3">
+            <button onclick="switchTab('towers')" id="tab-towers" class="hand-btn bg-amber-400 text-stone-900 font-extrabold px-4 py-2 text-sm flex items-center gap-1.5">
+                🏢 <span data-i18n="tabTowers">Towers</span>
+            </button>
+            <button onclick="switchTab('locker')" id="tab-locker" class="hand-btn bg-white text-stone-700 font-bold px-4 py-2 text-sm flex items-center gap-1.5 hover:bg-amber-100">
+                📦 <span data-i18n="tabLocker">Locker</span>
+            </button>
+            <button onclick="switchTab('mystery')" id="tab-mystery" class="hand-btn bg-white text-stone-700 font-bold px-4 py-2 text-sm flex items-center gap-1.5 hover:bg-amber-100">
+                ❓ <span data-i18n="tabMystery">Mystery Box</span>
+            </button>
+            <button onclick="switchTab('garden')" id="tab-garden" class="hand-btn bg-white text-stone-700 font-bold px-4 py-2 text-sm flex items-center gap-1.5 hover:bg-amber-100">
+                🌱 <span data-i18n="tabGarden">Garden</span>
+            </button>
+            <button onclick="switchTab('archive')" id="tab-archive" class="hand-btn bg-white text-stone-700 font-bold px-4 py-2 text-sm flex items-center gap-1.5 hover:bg-amber-100">
+                📚 <span data-i18n="tabArchive">Archive</span>
+            </button>
+        </nav>
 
-        saveData();
-        render();
-      }
-    }
+        <div id="activeBuildingBanner" class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span id="activeBuildingIcon" class="text-3xl">🏛️</span>
+                <div>
+                    <span id="lblActiveBuilding" class="text-xs font-bold uppercase tracking-wider text-amber-800 block">Active Building Context</span>
+                    <h2 id="activeBuildingName" class="text-xl font-extrabold text-stone-800">Select a Building</h2>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <label id="lblSelectTower" class="text-xs font-bold text-stone-600">Switch Tower:</label>
+                <select id="towerSelector" onchange="changeActiveTower(this.value)" class="hand-input bg-white text-stone-800 font-bold px-3 py-1.5 text-sm">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+        </div>
 
-    function addNewTower() {
-      const name = prompt(lang === 'zh' ? '请输入新大楼名称：' : 'New tower name:');
-      if (name) {
-        const newId = Date.now().toString();
-        appData.towers.push({
-          id: newId,
-          icon: '🏢',
-          version: 'v1.0',
-          lockers: [],
-          mysteryBox: [],
-          garden: { who_zh: '新角色', who_en: 'New Persona', future_zh: '目标状态', future_en: 'Goal State' },
-          zh: {
-            name: name,
-            slogan: '建构清晰认知，掌握日常主动权',
-            vision: '持续迭代系统，建立高效秩序',
-            floors: [{ id: newId + '_f1', num: 1, title: '基础准则层', icon: '📌', desc: '核心理念与行动基座。', items: ['初始规则'] }]
-          },
-          en: {
-            name: name,
-            slogan: 'Build systems, master habits',
-            vision: 'Iterate continuously for peak order',
-            floors: [{ id: newId + '_f1', num: 1, title: 'Base Rule Floor', icon: '📌', desc: 'Core concept & base.', items: ['Initial Rule'] }]
-          }
-        });
-        saveData();
-        openTower(newId);
-      }
-    }
+        <section id="view-towers" class="space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="towersHeading" class="text-2xl font-black text-stone-800">My System Towers</h2>
+                    <p id="towersSubheading" class="text-xs text-stone-600">Your personalized cognitive structures. Fully editable and customizable.</p>
+                </div>
+                <button onclick="openCreateTowerModal()" class="hand-btn bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold px-4 py-2 text-sm flex items-center gap-1">
+                    ✨ <span id="btnCreateTower">+ Build New Tower</span>
+                </button>
+            </div>
 
-    // 快递/问答/花园等联动函数
-    function addLockerItem(towerId) {
-      const txt = prompt(lang === 'zh' ? '请输入存入快递柜的信息：' : 'Enter locker item:');
-      if (txt) {
-        const tower = appData.towers.find(t => t.id === towerId);
-        if (!tower.lockers) tower.lockers = [];
-        tower.lockers.push({ id: Date.now().toString(), zh: txt, en: txt });
-        saveData();
-        render();
-      }
-    }
+            <!-- List of Towers -->
+            <div id="towersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Dynamic Towers HTML -->
+            </div>
+        </section>
 
-    function deleteLockerItem(towerId, itemId) {
-      const tower = appData.towers.find(t => t.id === towerId);
-      tower.lockers = tower.lockers.filter(i => i.id !== itemId);
-      saveData();
-      render();
-    }
+        <section id="view-locker" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="lockerHeading" class="text-2xl font-black text-stone-800">Cognitive Express Locker</h2>
+                    <p id="lockerSubheading" class="text-xs text-stone-600">Parcels, notifications, and pending items for current tower.</p>
+                </div>
+                <button onclick="openAddLockerModal()" class="hand-btn bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2 text-sm flex items-center gap-1">
+                    📦 <span id="btnAddParcel">+ Add Parcel</span>
+                </button>
+            </div>
+            <div id="lockerItems" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Dynamic Locker Items -->
+            </div>
+        </section>
 
-    function addMysteryItem(towerId) {
-      const q = prompt(lang === 'zh' ? '输入问题：' : 'Question:');
-      if (q) {
-        const a = prompt(lang === 'zh' ? '输入答案：' : 'Answer:') || '';
-        const tower = appData.towers.find(t => t.id === towerId);
-        if (!tower.mysteryBox) tower.mysteryBox = [];
-        tower.mysteryBox.push({ id: Date.now().toString(), q_zh: q, a_zh: a, q_en: q, a_en: a });
-        saveData();
-        render();
-      }
-    }
+        <section id="view-mystery" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="mysteryHeading" class="text-2xl font-black text-stone-800">Mystery Q&A Box</h2>
+                    <p id="mysterySubheading" class="text-xs text-stone-600">Ask questions and reflect on uncertainty for this building.</p>
+                </div>
+                <button onclick="openAddMysteryModal()" class="hand-btn bg-purple-500 hover:bg-purple-600 text-white font-extrabold px-4 py-2 text-sm flex items-center gap-1">
+                    ❓ <span id="btnAddQuestion">+ Ask Question</span>
+                </button>
+            </div>
+            <div id="mysteryItems" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dynamic Questions -->
+            </div>
+        </section>
 
-    function deleteMysteryItem(towerId, itemId) {
-      const tower = appData.towers.find(t => t.id === towerId);
-      tower.mysteryBox = tower.mysteryBox.filter(i => i.id !== itemId);
-      saveData();
-      render();
-    }
+        <section id="view-garden" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="gardenHeading" class="text-2xl font-black text-stone-800">Rooftop Mind Garden</h2>
+                    <p id="gardenSubheading" class="text-xs text-stone-600">Nurture habits, gains, and positive milestones.</p>
+                </div>
+                <button onclick="openAddPlantModal()" class="hand-btn bg-green-600 hover:bg-green-700 text-white font-extrabold px-4 py-2 text-sm flex items-center gap-1">
+                    🌱 <span id="btnPlantSeed">+ Plant Seed</span>
+                </button>
+            </div>
+            <div id="gardenItems" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <!-- Dynamic Garden Items -->
+            </div>
+        </section>
 
-    function editGarden(towerId) {
-      const tower = appData.towers.find(t => t.id === towerId);
-      if (!tower.garden) tower.garden = {};
-      const who = prompt(lang === 'zh' ? '我是谁 (Who I Am)：' : 'Who I am:', tower.garden['who_' + lang] || '');
-      if (who !== null) {
-        const future = prompt(lang === 'zh' ? '走向的未来 (Future Vision)：' : 'Future vision:', tower.garden['future_' + lang] || '');
-        tower.garden['who_' + lang] = who;
-        tower.garden['future_' + lang] = future;
-        saveData();
-        render();
-      }
-    }
+        <section id="view-archive" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="archiveHeading" class="text-2xl font-black text-stone-800">Building Archive & History</h2>
+                    <p id="archiveSubheading" class="text-xs text-stone-600">Past logs, mastered skills, and archived notes.</p>
+                </div>
+                <button onclick="addArchiveLog()" class="hand-btn bg-stone-600 hover:bg-stone-700 text-white font-extrabold px-4 py-2 text-sm flex items-center gap-1">
+                    📝 <span id="btnAddArchiveLog">+ New Log</span>
+                </button>
+            </div>
+            <div id="archiveItems" class="space-y-3">
+                <!-- Dynamic Archive Logs -->
+            </div>
+        </section>
 
-    // 用户登录弹窗函数
-    function openAuthModal() {
-      document.getElementById('username-input').value = currentUser;
-      document.getElementById('auth-modal').classList.remove('hidden');
-    }
+    </main>
 
-    function closeAuthModal() {
-      document.getElementById('auth-modal').classList.add('hidden');
-    }
+    <div id="genericModal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="hand-card bg-[#fffcf7] max-w-lg w-full p-6 relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-stone-400 hover:text-stone-700 text-xl font-bold">✕</button>
+            <h3 id="modalTitle" class="text-xl font-extrabold text-stone-800 mb-4">Modal Title</h3>
+            <div id="modalBody" class="space-y-4">
+                <!-- Dynamic content filled by JS -->
+            </div>
+        </div>
+    </div>
 
-    function handleLogin() {
-      const input = document.getElementById('username-input').value.trim();
-      if (input) {
-        currentUser = input;
-        appData = loadUserData(currentUser);
-        saveData();
-        closeAuthModal();
-        render();
-      }
-    }
+    <script>
+        // Default translations
+        const i18n = {
+            en: {
+                tabTowers: "Towers",
+                tabLocker: "Locker",
+                tabMystery: "Mystery Box",
+                tabGarden: "Garden",
+                tabArchive: "Archive",
+                authTitle: "Cognitive District",
+                authSubtitle: "Enter your Private Workspace",
+                lblUsername: "Username / Workspace ID",
+                lblPasscode: "Passcode (Optional)",
+                btnEnterWorkspace: "Enter Private Workspace",
+                quickDemoTitle: "Quick Demo Accounts",
+                authNote: "🔒 Private & Isolated: You will ONLY see your own customized towers.",
+                headerTagline: "Your Private Mind & Adaptation Dollhouse",
+                activeBuildingContext: "Active Building Context",
+                switchTower: "Switch Tower:",
+                towersHeading: "My System Towers",
+                towersSubheading: "Your personalized cognitive structures. Fully editable and customizable.",
+                btnCreateTower: "+ Build New Tower",
+                lockerHeading: "Cognitive Express Locker",
+                lockerSubheading: "Parcels, notifications, and pending items for current tower.",
+                btnAddParcel: "+ Add Parcel",
+                mysteryHeading: "Mystery Q&A Box",
+                mysterySubheading: "Ask questions and reflect on uncertainty for this building.",
+                btnAddQuestion: "+ Ask Question",
+                gardenHeading: "Rooftop Mind Garden",
+                gardenSubheading: "Nurture habits, gains, and positive milestones.",
+                btnPlantSeed: "+ Plant Seed",
+                archiveHeading: "Building Archive & History",
+                archiveSubheading: "Past logs, mastered skills, and archived notes.",
+                btnAddArchiveLog: "+ New Log",
+                logOut: "Log Out"
+            },
+            zh: {
+                tabTowers: "系统大楼",
+                tabLocker: "快递柜",
+                tabMystery: "提问箱",
+                tabGarden: "心灵花园",
+                tabArchive: "历史归档",
+                authTitle: "认知小区",
+                authSubtitle: "进入您的私人专属工作区",
+                lblUsername: "用户名 / 工作区名称",
+                lblPasscode: "密码 (可选)",
+                btnEnterWorkspace: "进入私人工作区",
+                quickDemoTitle: "快速体验账号",
+                authNote: "🔒 隐私隔离：登录后仅展示属于您个人的数据与大楼。",
+                headerTagline: "您的私人认知与适应玩偶屋",
+                activeBuildingContext: "当前绑定大楼",
+                switchTower: "切换大楼:",
+                towersHeading: "我的认知大楼",
+                towersSubheading: "个性化认知与习惯系统，支持自由添加、编辑与拆除。",
+                btnCreateTower: "+ 新建大楼",
+                lockerHeading: "认知快递柜",
+                lockerSubheading: "存放与当前大楼相关的未完成事项与待领取包裹。",
+                btnAddParcel: "+ 存入快递",
+                mysteryHeading: "提问与解惑箱",
+                mysterySubheading: "记录关于当前大楼的疑问、困惑与自我解答。",
+                btnAddQuestion: "+ 提新问题",
+                gardenHeading: "楼顶心灵花园",
+                gardenSubheading: "培育习惯、收获成长与记录美好时刻。",
+                btnPlantSeed: "+ 种下种子",
+                archiveHeading: "大楼归档日志",
+                archiveSubheading: "记录历史日志、已掌握的经验与知识。",
+                btnAddArchiveLog: "+ 记一笔",
+                logOut: "退出登录"
+            }
+        };
 
-    // 初始化渲染
-    render();
-  </script>
+        // Application State
+        let currentLang = 'en';
+        let currentUser = null;
+        let activeTowerId = null;
+        let db = {}; // Structured as: db[username] = { towers: [], lockers: {}, mysteries: {}, gardens: {}, archives: {} }
+
+        // Initial Template Data for New Users
+        function getInitialUserData(username) {
+            return {
+                towers: [
+                    {
+                        id: 'tower-intl',
+                        title: 'Intl Student Adaptation System',
+                        titleZh: '国际生适应大楼',
+                        icon: '🎓',
+                        description: 'Systematic guide for academic, life, and mental adjustment abroad.',
+                        floors: [
+                            {
+                                id: 'f3',
+                                number: 3,
+                                title: 'Academic Floor',
+                                titleZh: '学术顶层',
+                                desc: 'Syllabus, office hours & academic writing.',
+                                items: ['Check Canvas daily', 'Book writing center session', 'Attend professor office hours']
+                            },
+                            {
+                                id: 'f2',
+                                number: 2,
+                                title: 'Social & Life Floor',
+                                titleZh: '生活与社交层',
+                                desc: 'Housing, banking & making friends.',
+                                items: ['Pay utility bills', 'Join student club event', 'Grocery shopping at Asian market']
+                            },
+                            {
+                                id: 'f1',
+                                number: 1,
+                                title: 'Emotional Ground Floor',
+                                titleZh: '情绪底层',
+                                desc: 'Homesickness & stress regulation.',
+                                items: ['Call family on weekend', '15-min mindfulness session', 'Journaling feelings']
+                            }
+                        ]
+                    },
+                    {
+                        id: 'tower-health',
+                        title: 'Health & Vitality System',
+                        titleZh: '健康管理大楼',
+                        icon: '🏋️‍♂️',
+                        description: 'Daily routines for physical energy, sleep, and nutrition.',
+                        floors: [
+                            {
+                                id: 'hf2',
+                                number: 2,
+                                title: 'Nutrition & Energy',
+                                titleZh: '营养与能量层',
+                                desc: 'Balanced meals and hydration.',
+                                items: ['Drink 2L water daily', 'Eat 1 green vegetable per meal', 'Limit caffeine after 2 PM']
+                            },
+                            {
+                                id: 'hf1',
+                                number: 1,
+                                title: 'Sleep & Movement',
+                                titleZh: '睡眠与运动层',
+                                desc: 'Circadian rhythm and daily steps.',
+                                items: ['Sleep before 11:30 PM', '7,000 steps daily walk', 'Morning light exposure']
+                            }
+                        ]
+                    }
+                ],
+                lockers: {
+                    'tower-intl': [
+                        { id: 'l1', title: 'I-20 Form Renewal', status: 'Pending', code: 'INTL-092' },
+                        { id: 'l2', title: 'Health Insurance Card', status: 'Delivered', code: 'INS-881' }
+                    ],
+                    'tower-health': [
+                        { id: 'l3', title: 'Vitamin D Supplements', status: 'Pending', code: 'VIT-102' }
+                    ]
+                },
+                mysteries: {
+                    'tower-intl': [
+                        { id: 'm1', question: 'How to make native English friends without feeling awkward?', answer: 'Start with shared interests in campus clubs rather than small talk.' }
+                    ],
+                    'tower-health': [
+                        { id: 'm2', question: 'What to do when feeling exhausted after studying late?', answer: 'Take a 20-min power nap instead of grabbing another espresso.' }
+                    ]
+                },
+                gardens: {
+                    'tower-intl': [
+                        { id: 'g1', plant: '🌻 Sunburst', notes: 'First presentation delivered without shaking!' }
+                    ],
+                    'tower-health': [
+                        { id: 'g2', plant: '🌿 Mint Leaf', notes: 'Maintained 7 days of 8-hour sleep streak.' }
+                    ]
+                },
+                archives: {
+                    'tower-intl': [
+                        { id: 'a1', title: 'Fall Orientation Notes', date: '2026-09-01', text: 'Completed campus tour and registered student ID.' }
+                    ],
+                    'tower-health': [
+                        { id: 'a2', title: 'Dental Checkup Completed', date: '2026-09-15', text: 'Cleaned teeth and got medical record backup.' }
+                    ]
+                }
+            };
+        }
+
+        window.onload = function() {
+            loadDatabaseFromStorage();
+            
+            // Check session
+            const savedUser = localStorage.getItem('cd_current_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                document.getElementById('authModal').classList.add('hidden');
+                initUserWorkspace();
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+            }
+            
+            updateLanguageUI();
+        };
+
+        function loadDatabaseFromStorage() {
+            const raw = localStorage.getItem('cd_multiuser_db');
+            if (raw) {
+                try {
+                    db = JSON.parse(raw);
+                } catch(e) {
+                    db = {};
+                }
+            }
+        }
+
+        function saveDatabaseToStorage() {
+            localStorage.setItem('cd_multiuser_db', JSON.stringify(db));
+        }
+
+        // AUTHENTICATION SYSTEM
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) return;
+            
+            loginAs(username);
+        }
+
+        function quickLogin(username) {
+            loginAs(username);
+        }
+
+        function loginAs(username) {
+            currentUser = username;
+            localStorage.setItem('cd_current_user', currentUser);
+            
+            // Ensure user has private space initialized
+            if (!db[currentUser]) {
+                db[currentUser] = getInitialUserData(currentUser);
+                saveDatabaseToStorage();
+            }
+
+            document.getElementById('authModal').classList.add('hidden');
+            initUserWorkspace();
+        }
+
+        function logout() {
+            localStorage.removeItem('cd_current_user');
+            currentUser = null;
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+
+        function initUserWorkspace() {
+            document.getElementById('currentUsername').innerText = currentUser;
+            
+            const userData = db[currentUser];
+            if (userData.towers && userData.towers.length > 0) {
+                activeTowerId = userData.towers[0].id;
+            } else {
+                activeTowerId = null;
+            }
+
+            renderAll();
+        }
+
+        // LANGUAGE SYSTEM
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            updateLanguageUI();
+            renderAll();
+        }
+
+        function updateLanguageUI() {
+            const t = i18n[currentLang];
+            document.getElementById('langLabel').innerText = currentLang === 'en' ? 'EN / 中' : '中 / EN';
+            
+            document.getElementById('authTitle').innerText = t.authTitle;
+            document.getElementById('authSubtitle').innerText = t.authSubtitle;
+            document.getElementById('lblUsername').innerText = t.lblUsername;
+            document.getElementById('lblPasscode').innerText = t.lblPasscode;
+            document.getElementById('btnEnterWorkspace').innerText = t.btnEnterWorkspace;
+            document.getElementById('quickDemoTitle').innerText = t.quickDemoTitle;
+            document.getElementById('authNote').innerText = t.authNote;
+            document.getElementById('headerTagline').innerText = t.headerTagline;
+            document.getElementById('lblActiveBuilding').innerText = t.activeBuildingContext;
+            document.getElementById('lblSelectTower').innerText = t.switchTower;
+
+            document.getElementById('towersHeading').innerText = t.towersHeading;
+            document.getElementById('towersSubheading').innerText = t.towersSubheading;
+            document.getElementById('btnCreateTower').innerText = t.btnCreateTower;
+
+            document.getElementById('lockerHeading').innerText = t.lockerHeading;
+            document.getElementById('lockerSubheading').innerText = t.lockerSubheading;
+            document.getElementById('btnAddParcel').innerText = t.btnAddParcel;
+
+            document.getElementById('mysteryHeading').innerText = t.mysteryHeading;
+            document.getElementById('mysterySubheading').innerText = t.mysterySubheading;
+            document.getElementById('btnAddQuestion').innerText = t.btnAddQuestion;
+
+            document.getElementById('gardenHeading').innerText = t.gardenHeading;
+            document.getElementById('gardenSubheading').innerText = t.gardenSubheading;
+            document.getElementById('btnPlantSeed').innerText = t.btnPlantSeed;
+
+            document.getElementById('archiveHeading').innerText = t.archiveHeading;
+            document.getElementById('archiveSubheading').innerText = t.archiveSubheading;
+            document.getElementById('btnAddArchiveLog').innerText = t.btnAddArchiveLog;
+
+            document.getElementById('btnLogout').innerText = t.logOut;
+
+            // Nav tabs
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+        }
+
+        function renderAll() {
+            if (!currentUser || !db[currentUser]) return;
+
+            renderTowerSelector();
+            renderTowers();
+            renderLocker();
+            renderMystery();
+            renderGarden();
+            renderArchive();
+        }
+
+        function renderTowerSelector() {
+            const selector = document.getElementById('towerSelector');
+            const userData = db[currentUser];
+            selector.innerHTML = '';
+
+            if (!userData.towers || userData.towers.length === 0) {
+                selector.innerHTML = `<option value="">(No Towers)</option>`;
+                document.getElementById('activeBuildingName').innerText = currentLang === 'en' ? 'No Building Created' : '暂无大楼';
+                document.getElementById('activeBuildingIcon').innerText = '🏚️';
+                return;
+            }
+
+            userData.towers.forEach(t => {
+                const title = currentLang === 'zh' ? (t.titleZh || t.title) : t.title;
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.innerText = `${t.icon || '🏢'} ${title}`;
+                if (t.id === activeTowerId) opt.selected = true;
+                selector.appendChild(opt);
+            });
+
+            const activeTower = userData.towers.find(t => t.id === activeTowerId) || userData.towers[0];
+            if (activeTower) {
+                activeTowerId = activeTower.id;
+                document.getElementById('activeBuildingName').innerText = currentLang === 'zh' ? (activeTower.titleZh || activeTower.title) : activeTower.title;
+                document.getElementById('activeBuildingIcon').innerText = activeTower.icon || '🏢';
+            }
+        }
+
+        function changeActiveTower(towerId) {
+            activeTowerId = towerId;
+            renderAll();
+        }
+
+        // TOWER VIEW RENDERER
+        function renderTowers() {
+            const container = document.getElementById('towersGrid');
+            container.innerHTML = '';
+            const userData = db[currentUser];
+
+            if (!userData.towers || userData.towers.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full hand-card bg-white p-8 text-center">
+                        <p class="text-4xl mb-2">🏗️</p>
+                        <p class="font-bold text-lg text-stone-700">No Towers Built Yet</p>
+                        <p class="text-xs text-stone-500 mb-4">Click below to start building your customized cognitive system.</p>
+                        <button onclick="openCreateTowerModal()" class="hand-btn bg-emerald-500 text-white font-extrabold px-4 py-2 text-sm">
+                            + Build First Tower
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            userData.towers.forEach(tower => {
+                const title = currentLang === 'zh' ? (tower.titleZh || tower.title) : tower.title;
+                const isSelected = tower.id === activeTowerId;
+
+                const card = document.createElement('div');
+                card.className = `hand-card p-5 bg-white relative flex flex-col justify-between ${isSelected ? 'ring-4 ring-amber-400 border-amber-600' : ''}`;
+                
+                let floorsHTML = '';
+                tower.floors.forEach((f, fIndex) => {
+                    const fTitle = currentLang === 'zh' ? (f.titleZh || f.title) : f.title;
+                    let itemsHTML = '';
+                    f.items.forEach((item, iIndex) => {
+                        itemsHTML += `
+                            <li class="flex items-center justify-between group/item text-xs text-stone-700 bg-stone-50 p-1.5 rounded border border-stone-200">
+                                <span>• ${item}</span>
+                                <div class="opacity-0 group-hover/item:opacity-100 flex items-center gap-1">
+                                    <button onclick="editBulletItem('${tower.id}', '${f.id}', ${iIndex})" class="text-blue-600 hover:text-blue-800 text-[10px]">✏️</button>
+                                    <button onclick="deleteBulletItem('${tower.id}', '${f.id}', ${iIndex})" class="text-red-600 hover:text-red-800 text-[10px]">🗑️</button>
+                                </div>
+                            </li>
+                        `;
+                    });
+
+                    floorsHTML += `
+                        <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase text-amber-900 bg-amber-200 px-2 py-0.5 rounded">
+                                    F${f.number}: ${fTitle}
+                                </span>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="addItemToFloor('${tower.id}', '${f.id}')" class="text-xs font-bold text-emerald-700 hover:underline">+ Add Item</button>
+                                    <button onclick="editFloor('${tower.id}', '${f.id}')" class="text-xs text-blue-600 ml-1">✏️</button>
+                                    <button onclick="deleteFloor('${tower.id}', '${f.id}')" class="text-xs text-red-600">🗑️</button>
+                                </div>
+                            </div>
+                            <p class="text-xs text-stone-500 italic">${f.desc}</p>
+                            <ul class="space-y-1">
+                                ${itemsHTML}
+                            </ul>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-3xl">${tower.icon || '🏢'}</span>
+                                <div>
+                                    <h3 class="font-black text-lg text-stone-800 leading-tight">${title}</h3>
+                                    <p class="text-xs text-stone-500">${tower.description}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="editTower('${tower.id}')" title="Edit Tower Header" class="text-xs text-stone-500 hover:text-stone-800 p-1">✏️</button>
+                                <button onclick="deleteTower('${tower.id}')" title="Demolish Tower" class="text-xs text-red-500 hover:text-red-700 p-1">🗑️</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 mb-4">
+                            ${floorsHTML}
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-dashed border-stone-200 flex items-center justify-between">
+                        <button onclick="addFloorToTower('${tower.id}')" class="hand-btn bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5">
+                            + Add Floor
+                        </button>
+                        <button onclick="changeActiveTower('${tower.id}')" class="hand-btn ${isSelected ? 'bg-amber-500 text-white' : 'bg-white text-stone-700'} text-xs font-bold px-3 py-1.5">
+                            ${isSelected ? 'Active Building' : 'Select Building'}
+                        </button>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function renderLocker() {
+            const container = document.getElementById('lockerItems');
+            container.innerHTML = '';
+            const userData = db[currentUser];
+            const items = (userData.lockers && userData.lockers[activeTowerId]) || [];
+
+            if (items.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-xs text-stone-500 italic p-4 text-center">No parcel items for this tower.</p>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = 'hand-card bg-amber-50/50 p-4 flex flex-col justify-between';
+                el.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-mono bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">${item.code}</span>
+                            <span class="text-xs font-bold ${item.status === 'Delivered' ? 'text-green-600' : 'text-amber-600'}">${item.status}</span>
+                        </div>
+                        <h4 class="font-extrabold text-stone-800 text-sm mb-2">${item.title}</h4>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-stone-200">
+                        <button onclick="deleteLockerItem(${index})" class="text-xs text-red-600 font-bold hover:underline">Delete</button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function renderMystery() {
+            const container = document.getElementById('mysteryItems');
+            container.innerHTML = '';
+            const userData = db[currentUser];
+            const items = (userData.mysteries && userData.mysteries[activeTowerId]) || [];
+
+            if (items.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-xs text-stone-500 italic p-4 text-center">No Q&A questions asked yet.</p>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = 'hand-card bg-purple-50/50 p-4 space-y-2';
+                el.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <p class="font-extrabold text-purple-950 text-sm">❓ Q: ${item.question}</p>
+                        <button onclick="deleteMysteryItem(${index})" class="text-xs text-red-500 hover:underline">🗑️</button>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-lg border border-purple-200 text-xs text-stone-700">
+                        💡 <strong>Insight:</strong> ${item.answer || 'Awaiting reflection...'}
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function renderGarden() {
+            const container = document.getElementById('gardenItems');
+            container.innerHTML = '';
+            const userData = db[currentUser];
+            const items = (userData.gardens && userData.gardens[activeTowerId]) || [];
+
+            if (items.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-xs text-stone-500 italic p-4 text-center">No mind plants blooming here yet.</p>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = 'hand-card bg-emerald-50/50 p-4 text-center flex flex-col justify-between';
+                el.innerHTML = `
+                    <div>
+                        <div class="text-3xl mb-1">🪴</div>
+                        <h4 class="font-black text-emerald-900 text-sm">${item.plant}</h4>
+                        <p class="text-xs text-stone-600 mt-1">${item.notes}</p>
+                    </div>
+                    <button onclick="deleteGardenItem(${index})" class="text-[10px] text-red-500 mt-3 hover:underline">Remove</button>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function renderArchive() {
+            const container = document.getElementById('archiveItems');
+            container.innerHTML = '';
+            const userData = db[currentUser];
+            const items = (userData.archives && userData.archives[activeTowerId]) || [];
+
+            if (items.length === 0) {
+                container.innerHTML = `<p class="text-xs text-stone-500 italic p-4 text-center">No logs archived yet.</p>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = 'hand-card bg-stone-50 p-3.5 flex items-center justify-between';
+                el.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-stone-500">${item.date}</span>
+                            <h4 class="font-extrabold text-stone-800 text-sm">${item.title}</h4>
+                        </div>
+                        <p class="text-xs text-stone-600 mt-0.5">${item.text}</p>
+                    </div>
+                    <button onclick="deleteArchiveItem(${index})" class="text-xs text-red-500 hover:underline ml-2">Delete</button>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function openCreateTowerModal() {
+            openModal('Build New System Tower', `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Tower Title (EN)</label>
+                        <input id="newTowerTitle" type="text" placeholder="e.g. Career Growth Tower" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Tower Title (ZH)</label>
+                        <input id="newTowerTitleZh" type="text" placeholder="例：职业发展大楼" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Emoji Icon</label>
+                        <input id="newTowerIcon" type="text" placeholder="🚀" class="hand-input w-20 p-2 text-sm text-center" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Description</label>
+                        <textarea id="newTowerDesc" placeholder="Short summary..." class="hand-input w-full p-2 text-sm h-20"></textarea>
+                    </div>
+                    <button onclick="saveNewTower()" class="hand-btn w-full bg-emerald-500 text-white font-extrabold py-2 text-sm">Create Tower</button>
+                </div>
+            `);
+        }
+
+        function saveNewTower() {
+            const title = document.getElementById('newTowerTitle').value.trim() || 'Untitled Tower';
+            const titleZh = document.getElementById('newTowerTitleZh').value.trim() || title;
+            const icon = document.getElementById('newTowerIcon').value.trim() || '🏢';
+            const description = document.getElementById('newTowerDesc').value.trim() || 'Custom building system.';
+
+            const newId = 'tower-' + Date.now();
+            const newTower = {
+                id: newId,
+                title,
+                titleZh,
+                icon,
+                description,
+                floors: [
+                    { id: 'f1-' + Date.now(), number: 1, title: 'Ground Floor', titleZh: '基础层', desc: 'Core habits and setup.', items: ['First task'] }
+                ]
+            };
+
+            db[currentUser].towers.push(newTower);
+            activeTowerId = newId;
+            saveDatabaseToStorage();
+            closeModal();
+            renderAll();
+        }
+
+        function editTower(towerId) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            if (!tower) return;
+
+            openModal('Edit Tower Header', `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Title (EN)</label>
+                        <input id="editTowerTitle" type="text" value="${tower.title}" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Title (ZH)</label>
+                        <input id="editTowerTitleZh" type="text" value="${tower.titleZh || tower.title}" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Icon</label>
+                        <input id="editTowerIcon" type="text" value="${tower.icon || '🏢'}" class="hand-input w-20 p-2 text-sm text-center" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Description</label>
+                        <textarea id="editTowerDesc" class="hand-input w-full p-2 text-sm h-20">${tower.description}</textarea>
+                    </div>
+                    <button onclick="saveTowerEdit('${towerId}')" class="hand-btn w-full bg-blue-500 text-white font-extrabold py-2 text-sm">Save Changes</button>
+                </div>
+            `);
+        }
+
+        function saveTowerEdit(towerId) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            if (tower) {
+                tower.title = document.getElementById('editTowerTitle').value;
+                tower.titleZh = document.getElementById('editTowerTitleZh').value;
+                tower.icon = document.getElementById('editTowerIcon').value;
+                tower.description = document.getElementById('editTowerDesc').value;
+                saveDatabaseToStorage();
+                closeModal();
+                renderAll();
+            }
+        }
+
+        function deleteTower(towerId) {
+            if (confirm(currentLang === 'zh' ? '确定拆除这座大楼吗？数据将无法找回。' : 'Demolish this tower? All its contents will be permanently deleted.')) {
+                db[currentUser].towers = db[currentUser].towers.filter(t => t.id !== towerId);
+                if (activeTowerId === towerId) {
+                    activeTowerId = db[currentUser].towers.length > 0 ? db[currentUser].towers[0].id : null;
+                }
+                saveDatabaseToStorage();
+                renderAll();
+            }
+        }
+
+        // FLOOR CRUD
+        function addFloorToTower(towerId) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            if (!tower) return;
+
+            const nextNum = tower.floors.length + 1;
+            tower.floors.push({
+                id: 'f-' + Date.now(),
+                number: nextNum,
+                title: `Floor ${nextNum}`,
+                titleZh: `第 ${nextNum} 层`,
+                desc: 'New layer of focus.',
+                items: ['New habit or rule']
+            });
+
+            saveDatabaseToStorage();
+            renderAll();
+        }
+
+        function editFloor(towerId, floorId) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            const floor = tower?.floors.find(f => f.id === floorId);
+            if (!floor) return;
+
+            openModal('Edit Floor', `
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Floor Title (EN)</label>
+                        <input id="editFloorTitle" type="text" value="${floor.title}" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Floor Title (ZH)</label>
+                        <input id="editFloorTitleZh" type="text" value="${floor.titleZh || floor.title}" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-600 mb-1">Description</label>
+                        <input id="editFloorDesc" type="text" value="${floor.desc}" class="hand-input w-full p-2 text-sm" />
+                    </div>
+                    <button onclick="saveFloorEdit('${towerId}', '${floorId}')" class="hand-btn w-full bg-blue-500 text-white font-extrabold py-2 text-sm">Save Floor</button>
+                </div>
+            `);
+        }
+
+        function saveFloorEdit(towerId, floorId) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            const floor = tower?.floors.find(f => f.id === floorId);
+            if (floor) {
+                floor.title = document.getElementById('editFloorTitle').value;
+                floor.titleZh = document.getElementById('editFloorTitleZh').value;
+                floor.desc = document.getElementById('editFloorDesc').value;
+                saveDatabaseToStorage();
+                closeModal();
+                renderAll();
+            }
+        }
+
+        function deleteFloor(towerId, floorId) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            if (tower) {
+                tower.floors = tower.floors.filter(f => f.id !== floorId);
+                saveDatabaseToStorage();
+                renderAll();
+            }
+        }
+
+        // ITEM CRUD
+        function addItemToFloor(towerId, floorId) {
+            const text = prompt(currentLang === 'zh' ? '请输入新条目内容：' : 'Enter new item/rule content:');
+            if (text) {
+                const tower = db[currentUser].towers.find(t => t.id === towerId);
+                const floor = tower?.floors.find(f => f.id === floorId);
+                if (floor) {
+                    floor.items.push(text);
+                    saveDatabaseToStorage();
+                    renderAll();
+                }
+            }
+        }
+
+        function editBulletItem(towerId, floorId, itemIndex) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            const floor = tower?.floors.find(f => f.id === floorId);
+            if (floor && floor.items[itemIndex] !== undefined) {
+                const updated = prompt(currentLang === 'zh' ? '修改条目：' : 'Edit item:', floor.items[itemIndex]);
+                if (updated) {
+                    floor.items[itemIndex] = updated;
+                    saveDatabaseToStorage();
+                    renderAll();
+                }
+            }
+        }
+
+        function deleteBulletItem(towerId, floorId, itemIndex) {
+            const tower = db[currentUser].towers.find(t => t.id === towerId);
+            const floor = tower?.floors.find(f => f.id === floorId);
+            if (floor) {
+                floor.items.splice(itemIndex, 1);
+                saveDatabaseToStorage();
+                renderAll();
+            }
+        }
+
+        function switchTab(tabKey) {
+            const tabs = ['towers', 'locker', 'mystery', 'garden', 'archive'];
+            tabs.forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabKey) {
+                    view.classList.remove('hidden');
+                    btn.className = 'hand-btn bg-amber-400 text-stone-900 font-extrabold px-4 py-2 text-sm flex items-center gap-1.5';
+                } else {
+                    view.classList.add('hidden');
+                    btn.className = 'hand-btn bg-white text-stone-700 font-bold px-4 py-2 text-sm flex items-center gap-1.5 hover:bg-amber-100';
+                }
+            });
+        }
+
+        function openModal(title, bodyHTML) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = bodyHTML;
+            document.getElementById('genericModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('genericModal').classList.add('hidden');
+        }
+
+        // ADD HELPERS FOR LOCKER, MYSTERY, GARDEN, ARCHIVE
+        function openAddLockerModal() {
+            if (!activeTowerId) return alert('Please create or select a building first.');
+            const title = prompt('Parcel name / Action item:');
+            if (title) {
+                if (!db[currentUser].lockers[activeTowerId]) db[currentUser].lockers[activeTowerId] = [];
+                db[currentUser].lockers[activeTowerId].push({
+                    id: 'l-' + Date.now(),
+                    title,
+                    status: 'Pending',
+                    code: 'PKG-' + Math.floor(100 + Math.random() * 900)
+                });
+                saveDatabaseToStorage();
+                renderLocker();
+            }
+        }
+
+        function deleteLockerItem(index) {
+            db[currentUser].lockers[activeTowerId].splice(index, 1);
+            saveDatabaseToStorage();
+            renderLocker();
+        }
+
+        function openAddMysteryModal() {
+            if (!activeTowerId) return alert('Please create or select a building first.');
+            const question = prompt('Question or uncertainty:');
+            if (question) {
+                const answer = prompt('Reflection or potential solution:') || 'Awaiting reflection...';
+                if (!db[currentUser].mysteries[activeTowerId]) db[currentUser].mysteries[activeTowerId] = [];
+                db[currentUser].mysteries[activeTowerId].push({
+                    id: 'm-' + Date.now(),
+                    question,
+                    answer
+                });
+                saveDatabaseToStorage();
+                renderMystery();
+            }
+        }
+
+        function deleteMysteryItem(index) {
+            db[currentUser].mysteries[activeTowerId].splice(index, 1);
+            saveDatabaseToStorage();
+            renderMystery();
+        }
+
+        function openAddPlantModal() {
+            if (!activeTowerId) return alert('Please create or select a building first.');
+            const plant = prompt('Plant / Habit Name (e.g. 🌸 Morning Walk):');
+            if (plant) {
+                const notes = prompt('Notes / Progress record:') || 'Growing well!';
+                if (!db[currentUser].gardens[activeTowerId]) db[currentUser].gardens[activeTowerId] = [];
+                db[currentUser].gardens[activeTowerId].push({
+                    id: 'g-' + Date.now(),
+                    plant,
+                    notes
+                });
+                saveDatabaseToStorage();
+                renderGarden();
+            }
+        }
+
+        function deleteGardenItem(index) {
+            db[currentUser].gardens[activeTowerId].splice(index, 1);
+            saveDatabaseToStorage();
+            renderGarden();
+        }
+
+        function addArchiveLog() {
+            if (!activeTowerId) return alert('Please create or select a building first.');
+            const title = prompt('Log Title:');
+            if (title) {
+                const text = prompt('Log details:') || 'Recorded.';
+                const date = new Date().toISOString().split('T')[0];
+                if (!db[currentUser].archives[activeTowerId]) db[currentUser].archives[activeTowerId] = [];
+                db[currentUser].archives[activeTowerId].push({
+                    id: 'a-' + Date.now(),
+                    title,
+                    date,
+                    text
+                });
+                saveDatabaseToStorage();
+                renderArchive();
+            }
+        }
+
+        function deleteArchiveItem(index) {
+            db[currentUser].archives[activeTowerId].splice(index, 1);
+            saveDatabaseToStorage();
+            renderArchive();
+        }
+    </script>
 </body>
 </html>
