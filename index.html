@@ -25,11 +25,6 @@
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .floor-section:active {
-      transform: translateY(2px);
-      box-shadow: 2px 3px 0px #78350f;
-    }
-
     .gold-brick {
       background: #fef3c7;
       border: 1.5px dashed #d97706;
@@ -76,11 +71,98 @@
   <script>
     let lang = localStorage.getItem('cn_lang') || 'zh';
     let currentTab = 'towers';
-    let selectedTowerId = 'body';
+    let selectedTowerId = 'intl_student';
 
-    // 数据库：纯中/纯英分列，彻底避免混杂
+    // 默认数据库（包含国际生大楼与健康大楼）
     let defaultData = {
       towers: [
+        {
+          id: 'intl_student',
+          icon: '🗽',
+          version: 'v1.0',
+          zh: {
+            name: '国际生适应大楼',
+            slogan: '搞懂海外生活隐藏规则，避开消费与税收陷阱。',
+            vision: '无缝融入留学生活，精细化管理日常花销。',
+            footerText: '懂规则，才能在海外生活得从容自如。',
+            floors: [
+              {
+                id: 'is_f3',
+                num: 3,
+                title: '消费税规避与避坑指南',
+                icon: '🧾',
+                desc: '掌握各超市与小摊的税收差异，不做冤大头。',
+                items: [
+                  '🚚 Food Truck (餐车)：通常标价即终价，无额外加税',
+                  '🎯 Target (超市)：未加工原始食物(生鲜/牛奶/面包)免税，但日用品与加工零食加税',
+                  '👕 衣物与鞋履税率：单件未满特定额度免税，超过比例不同',
+                  '🍎 Appletree (特色超市)：大曲奇饼干、Sandwich Hero 等手工加工品要收税，其余普通未加工杂货不用收税',
+                  '🛍️ Trader Joe\'s (缺角大叔)：需按分类征税，加工食品/饮料/日用品结账时计算消费税'
+                ],
+                fortified: true
+              },
+              {
+                id: 'is_f2',
+                num: 2,
+                title: '租房与水电网搭建',
+                icon: '🛋️',
+                desc: '搞定住所，建立安全的日常生活基底。',
+                items: ['确认 Wi-Fi 宽带开通', '办理网银与 SSN/ITIN', '购买租客保险'],
+                fortified: false
+              },
+              {
+                id: 'is_f1',
+                num: 1,
+                title: '身份与合规地基',
+                icon: '📜',
+                desc: '维持合法身份，做好入学登记与保险确认。',
+                items: ['完成 Check-in 激活 I-20', '购买并通过校内 Health Insurance 审核'],
+                fortified: true
+              }
+            ]
+          },
+          en: {
+            name: 'Intl Student Adaptation System',
+            slogan: 'Master hidden local rules and avoid tax traps.',
+            vision: 'Seamless transition to study abroad life.',
+            footerText: 'Knowing rules brings effortless living abroad.',
+            floors: [
+              {
+                id: 'is_f3',
+                num: 3,
+                title: 'Sales Tax & Shopping Rules',
+                icon: '🧾',
+                desc: 'Know tax differences across food trucks, Target, and grocery stores.',
+                items: [
+                  '🚚 Food Truck: Listed price is usually final price without extra added tax',
+                  '🎯 Target: Unprocessed raw groceries exempt; household items & snacks taxable',
+                  '👕 Clothing Tax: Rates vary by total item price threshold',
+                  '🍎 Appletree Market: Giant cookies & Sandwich Hero (prepared items) are taxed; raw groceries exempt',
+                  '🛍️ Trader Joe\'s: Sales tax calculated at checkout for prepared food & supplies'
+                ],
+                fortified: true
+              },
+              {
+                id: 'is_f2',
+                num: 2,
+                title: 'Housing & Utilities',
+                icon: '🛋️',
+                desc: 'Set up apartment, internet, and essential services.',
+                items: ['Activate Wi-Fi broadband', 'Setup local bank account', 'Get renters insurance'],
+                fortified: false
+              },
+              {
+                id: 'is_f1',
+                num: 1,
+                title: 'Legal Status Base',
+                icon: '📜',
+                desc: 'Maintain legal student status and insurance.',
+                items: ['Check-in & activate I-20', 'Complete health insurance waiver'],
+                fortified: true
+              }
+            ]
+          }
+        },
         {
           id: 'body',
           icon: '🏠',
@@ -148,7 +230,7 @@
                 id: 'f5',
                 num: 5,
                 title: 'Mindset & Emotion',
-                icon: '🧘‍♀️',
+                icon: '🧘‍♀️️',
                 desc: 'Stay positive, regulate stress, build stability.',
                 items: ['Mindfulness', 'Mood log', 'Positive self-talk', 'Connect with allies'],
                 fortified: true
@@ -194,23 +276,23 @@
         }
       ],
       expressLocker: [
-        { id: 'e1', zh: '先吃蔬菜再吃蛋白质，血糖更稳定', en: 'Eat veggies before protein for steady blood sugar' }
+        { id: 'e1', zh: 'Target 买冷冻原味蔬菜免税，微波炉热食要算税', en: 'Raw frozen veggies at Target are tax exempt; hot foods taxable' }
       ],
       mysteryBox: [
-        { id: 'm1', q_zh: '下午3点总是犯困怎么办？', q_en: 'How to tackle 3 PM fatigue?', a_zh: '午餐减少精制碳水，增加蛋白质与20分钟散步。', a_en: 'Reduce refined carbs at lunch and take a 20-min walk.', isSolved: true }
+        { id: 'm1', q_zh: 'Appletree 的大曲奇算手工加工食品吗？', q_en: 'Are giant cookies at Appletree prepared food?', a_zh: '是的，店内现场烘焙/包装的手工制品（如曲奇、Hero 三明治）均会被计入消费税。', a_en: 'Yes, fresh baked items & hero sandwiches are subject to prepared food sales tax.', isSolved: true }
       ],
       garden: {
-        who_zh: '坚持健康大楼运行 45 天的系统构建者',
-        who_en: 'Health System Builder - 45 Day Streak',
-        future_zh: '拥有极佳精力与稳定情绪的健康个体',
-        future_en: 'A person with boundless energy and emotional balance'
+        who_zh: '正在建立留学独立生活规则的国际生',
+        who_en: 'Intl Student mastering local living rules',
+        future_zh: '精明自律、从容驾驭海外生活的自理达人',
+        future_en: 'A confident, independent global citizen'
       }
     };
 
-    let appData = JSON.parse(localStorage.getItem('cn_app_data_v2')) || defaultData;
+    let appData = JSON.parse(localStorage.getItem('cn_app_data_v3')) || defaultData;
 
     function saveData() {
-      localStorage.setItem('cn_app_data_v2', JSON.stringify(appData));
+      localStorage.setItem('cn_app_data_v3', JSON.stringify(appData));
       localStorage.setItem('cn_lang', lang);
     }
 
@@ -238,7 +320,6 @@
     }
 
     function render() {
-      // 更新底部导航语言
       document.getElementById('lbl-towers').innerText = lang === 'zh' ? '大楼' : 'Towers';
       document.getElementById('lbl-locker').innerText = lang === 'zh' ? '快递柜' : 'Locker';
       document.getElementById('lbl-mystery').innerText = lang === 'zh' ? '问答箱' : 'Mystery';
@@ -314,13 +395,18 @@
               ${data.floors.map(f => `
                 <div class="floor-section rounded-2xl p-4 relative">
                   
-                  <!-- 楼层卡片头部 -->
+                  <!-- 楼层卡片头部（含删除按钮） -->
                   <div class="flex justify-between items-center border-b border-amber-900/10 pb-2 mb-3">
                     <div class="flex items-center space-x-2">
                       <span class="text-2xl">${f.icon || '🏠'}</span>
                       <h3 class="font-black text-amber-950 text-base">${f.num}.${f.title}</h3>
                     </div>
-                    ${f.fortified ? `<span class="text-xs font-bold px-2.5 py-0.5 rounded-full gold-brick">🏆 ${lang === 'zh' ? '已加固金砖' : 'Fortified'}</span>` : ''}
+                    <div class="flex items-center space-x-2">
+                      ${f.fortified ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full gold-brick">🏆 ${lang === 'zh' ? '已加固' : 'Fortified'}</span>` : ''}
+                      <button onclick="deleteFloor('${tower.id}', '${f.id}')" class="text-xs text-rose-700 bg-rose-100 hover:bg-rose-200 px-2 py-0.5 rounded-lg font-bold border border-rose-300">
+                        🗑️ ${lang === 'zh' ? '删除' : 'Del'}
+                      </button>
+                    </div>
                   </div>
 
                   <!-- 左右剖面：理念与清单 -->
@@ -330,10 +416,10 @@
                     </div>
 
                     <div class="bg-white p-3 rounded-xl border border-amber-900/20 space-y-1.5">
-                      <span class="text-[10px] font-black text-amber-800 uppercase tracking-wider block">${lang === 'zh' ? '行动清单' : 'Checklist / SOP'}:</span>
-                      ${f.items.map(item => `
-                        <div class="flex items-center space-x-2 text-xs text-amber-950 font-semibold">
-                          <span class="text-amber-600 font-bold">✓</span>
+                      <span class="text-[10px] font-black text-amber-800 uppercase tracking-wider block">${lang === 'zh' ? '行动清单 / 税收法条' : 'Checklist / Tax Rules'}:</span>
+                      ${f.items.map((item, idx) => `
+                        <div class="flex items-start space-x-2 text-xs text-amber-950 font-semibold leading-relaxed">
+                          <span class="text-amber-600 font-bold mt-0.5">✓</span>
                           <span>${item}</span>
                         </div>
                       `).join('')}
@@ -433,24 +519,33 @@
       render();
     }
 
+    function deleteFloor(towerId, floorId) {
+      if (confirm(lang === 'zh' ? '确定要拆除这个楼层吗？' : 'Are you sure to delete this floor?')) {
+        const tower = appData.towers.find(t => t.id === towerId);
+        tower.zh.floors = tower.zh.floors.filter(f => f.id !== floorId);
+        tower.en.floors = tower.en.floors.filter(f => f.id !== floorId);
+        saveData();
+        render();
+      }
+    }
+
     function addNewFloor(towerId) {
-      const title = prompt(lang === 'zh' ? '请输入新楼层房间主题（如：心态调节）：' : 'Floor title:');
+      const title = prompt(lang === 'zh' ? '请输入新楼层房间主题（如：签证与出行）：' : 'Floor title:');
       if (title) {
         const desc = prompt(lang === 'zh' ? '请输入本层的核心理念描述：' : 'Floor description:') || '';
         const tower = appData.towers.find(t => t.id === towerId);
+        const newId = Date.now().toString();
         
-        const newFloorZh = { id: Date.now().toString(), num: tower.zh.floors.length + 1, title, icon: '🪴', desc, items: ['新建准则卡片'], fortified: false };
-        const newFloorEn = { id: Date.now().toString(), num: tower.en.floors.length + 1, title, icon: '🪴', desc, items: ['Initial Rule'], fortified: false };
+        tower.zh.floors.unshift({ id: newId, num: tower.zh.floors.length + 1, title, icon: '🪴', desc, items: ['新建规避法则卡片'], fortified: false });
+        tower.en.floors.unshift({ id: newId, num: tower.en.floors.length + 1, title, icon: '🪴', desc, items: ['Initial Rule Card'], fortified: false });
 
-        tower.zh.floors.unshift(newFloorZh);
-        tower.en.floors.unshift(newFloorEn);
         saveData();
         render();
       }
     }
 
     function fortifyFloor(towerId, floorId) {
-      const item = prompt(lang === 'zh' ? '请输入新增的 Checklist 行动细则：' : 'New checklist item:');
+      const item = prompt(lang === 'zh' ? '请输入新增的 Checklist 行动细则或税率法则：' : 'New checklist item:');
       if (item) {
         const tower = appData.towers.find(t => t.id === towerId);
         const fZh = tower.zh.floors.find(f => f.id === floorId);
@@ -484,26 +579,26 @@
     }
 
     function addNewTower() {
-      const name = prompt(lang === 'zh' ? '请输入新大楼名称（如：财富积累大楼）：' : 'New tower name:');
+      const name = prompt(lang === 'zh' ? '请输入新大楼名称：' : 'New tower name:');
       if (name) {
         const newId = Date.now().toString();
         appData.towers.push({
           id: newId,
-          icon: '🏦',
+          icon: '🏢',
           version: 'v1.0',
           zh: {
             name: name,
-            slogan: '积少成多，掌控复利',
-            vision: '建立稳健财务防线',
-            footerText: '资产是理性生活的基石。',
-            floors: [{ id: newId + '_f1', num: 1, title: '地基与预算', icon: '💰', desc: '管理现金流与应急准备金。', items: ['预留 6 个月储备金'], fortified: false }]
+            slogan: '建构清晰认知，掌握日常主动权',
+            vision: '持续迭代系统，建立高效秩序',
+            footerText: '秩序是自由的保障。',
+            floors: [{ id: newId + '_f1', num: 1, title: '基础准则层', icon: '📌', desc: '核心理念与行动基座。', items: ['初始行动规则'], fortified: false }]
           },
           en: {
             name: name,
-            slogan: 'Accumulate for compound growth',
-            vision: 'Build financial resilience',
-            footerText: 'Wealth is the foundation of freedom.',
-            floors: [{ id: newId + '_f1', num: 1, title: 'Base & Budget', icon: '💰', desc: 'Manage cashflow and emergency fund.', items: ['Keep 6 months reserve'], fortified: false }]
+            slogan: 'Build systems, master habits',
+            vision: 'Iterate continuously for peak order',
+            footerText: 'Order brings ultimate freedom.',
+            floors: [{ id: newId + '_f1', num: 1, title: 'Base Rule Floor', icon: '📌', desc: 'Core concept & base.', items: ['Initial Rule'], fortified: false }]
           }
         });
         saveData();
