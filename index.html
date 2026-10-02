@@ -34,7 +34,7 @@
       <span class="text-2xl">🏡</span>
       <div>
         <h1 class="font-extrabold text-amber-950 text-base leading-none" id="app-title">Cognitive District</h1>
-        <span class="text-[10px] font-bold text-amber-800/80" id="current-tower-badge">Active: Intl Student</span>
+        <span class="text-[10px] font-bold text-amber-800/80" id="current-tower-badge">Active: None</span>
       </div>
     </div>
     
@@ -123,9 +123,9 @@
     // 读取或初始化语言设置
     let lang = localStorage.getItem('cd_app_lang') || 'en';
 
-    // Full Initial Seed Dataset
+    // Initial Seed Dataset (默认selectedTowerId为null，未点进任何大楼)
     const getInitialSeedData = () => ({
-      selectedTowerId: 'intl_student',
+      selectedTowerId: null, 
       towers: [
         {
           id: 'intl_student',
@@ -143,10 +143,10 @@
                 desc: '掌握各超市与餐车的税收差异，不做冤大头。',
                 items: [
                   '🚚 Food Truck (餐车)：通常标价即终价，不用另外交税',
-                  '🎯 Target 类别差异：被子/床上用品税率与拖把等清洁工具有所区别（部分地区纺织品享受特定税收优惠，而拖把等日用杂货全额计税）',
+                  '🎯 Target 类别差异：被子/床上用品税率与拖把等清洁工具有所区别',
                   '👕 衣物与鞋履税率：不同地区有免税额度阈值，超过部分按不同比率征税',
-                  '🍎 Appletree 超市：手工大曲奇等熟食烘焙品要收税，其余普通未加工生鲜杂货免税',
-                  '🛍 Trader Joe\'s (缺角大叔)：需按商品分类交税，加工食品/饮料/日用品结账时计算消费税'
+                  '🍎 Appletree 超市：手工大曲奇等熟食烘焙品要收税，其余生鲜杂货免税',
+                  '🛍 Trader Joe\'s：需按商品分类交税，加工食品/日用品结账时计算消费税'
                 ]
               },
               {
@@ -180,10 +180,10 @@
                 desc: 'Know tax differences across food trucks, Target, and grocery stores.',
                 items: [
                   '🚚 Food Truck: Listed price is usually final price without extra tax',
-                  '🎯 Target Category Rules: Tax on comforters/bedding differs from mops and cleaning tools',
+                  '🎯 Target Category Rules: Tax on comforters/bedding differs from mops',
                   '👕 Clothing Tax: Clothing below specific dollar limit exempt, tiered rates above',
-                  '🍎 Appletree Market: Handmade giant cookies are taxable; raw groceries remain tax-exempt',
-                  '🛍 Trader Joe\'s: Sales tax calculated at checkout for prepared food & non-food items'
+                  '🍎 Appletree Market: Handmade giant cookies are taxable; raw groceries remain exempt',
+                  '🛍 Trader Joe\'s: Sales tax calculated at checkout for prepared food & non-food'
                 ]
               },
               {
@@ -206,7 +206,7 @@
           },
           expressLocker: [
             { id: 'el_1', zh: 'Appletree 提醒：手工大曲奇要收税，小票上需确认 Tax 标志', en: 'Appletree Tip: Handmade giant cookies ARE taxable!' },
-            { id: 'el_2', zh: 'Target 结账提醒：买被子与买拖把的税收规则不一样，请分开核对小票', en: 'Target Note: Tax rate for comforters differs from mops/cleaning gear' }
+            { id: 'el_2', zh: 'Target 结账提醒：买被子与买拖把的税收规则不一样', en: 'Target Note: Tax rate for comforters differs from mops/cleaning gear' }
           ],
           mysteryBox: [
             { id: 'mb_1', q_zh: '为什么 Appletree 的手工大曲奇要收税？', q_en: 'Why are Appletree handmade giant cookies taxed?', a_zh: '因为手工曲奇被归类为经过加工的即食烘焙食品（Prepared Food），不属于免税的原始生鲜食材。', a_en: 'Handmade cookies are classified as prepared bakery goods rather than tax-free raw groceries.', isSolved: true }
@@ -232,11 +232,7 @@
                 title: '高效恢复与睡眠调控',
                 icon: '🌙',
                 desc: '重视肌肉修复与精力恢复，建立良好作息。',
-                items: [
-                  '😴 确保每天 7-8 小时高质量深度睡眠',
-                  '🧘 高强度训练后进行 15 分钟静态拉伸与筋膜枪放松',
-                  '📱 睡前 1 小时减少蓝光设备使用，促进褪黑素分泌'
-                ]
+                items: ['😴 确保每天 7-8 小时高质量深度睡眠', '🧘 高强度训练后进行 15 分钟静态拉伸', '📱 睡前 1 小时减少蓝光设备使用']
               },
               {
                 id: 'ht_f2',
@@ -244,11 +240,7 @@
                 title: '科学力量训练与有氧配合',
                 icon: '💪',
                 desc: '推拉腿循环训练，兼顾心肺能力提升。',
-                items: [
-                  '🏋️每周 3-4 次力量训练（复合动作为主：深蹲、硬拉、卧推）',
-                  '🏃 每周 2 次低强度有氧（LISS），心率控制在 120-140 bpm',
-                  '📝 记录每次训练重量与组数，坚持渐进式负荷原则'
-                ]
+                items: ['🏋️每周 3-4 次力量训练', '🏃 每周 2 次低强度有氧（LISS）', '📝 记录每次训练重量与组数']
               },
               {
                 id: 'ht_f1',
@@ -256,11 +248,7 @@
                 title: '精准营养与水分摄入地基',
                 icon: '🥗',
                 desc: '掌控三大营养素比例，打好健康底层。',
-                items: [
-                  '🥩 每公斤体重摄入 1.6 - 2.0g 优质蛋白质（鸡胸肉、牛肉、蛋类）',
-                  '💧 每日饮水保持在 2500ml - 3000ml',
-                  '🥦 每餐必须有 1-2 拳高纤维蔬菜，严格控制超加工食品摄入'
-                ]
+                items: ['🥩 每公斤体重摄入 1.6 - 2.0g 优质蛋白质', '💧 每日饮水保持在 2500ml - 3000ml', '🥦 每餐必须有 1-2 拳高纤维蔬菜']
               }
             ]
           },
@@ -275,11 +263,7 @@
                 title: 'Recovery & Sleep Optimization',
                 icon: '🌙',
                 desc: 'Focus on muscle repair, relaxation, and circadian rhythm.',
-                items: [
-                  '😴 Secure 7-8 hours of quality deep sleep daily',
-                  '🧘 15-min static stretching and foam rolling post-workout',
-                  '📱 Cut screen time 1 hour before sleep for melatonin boost'
-                ]
+                items: ['😴 Secure 7-8 hours of quality deep sleep daily', '🧘 15-min static stretching post-workout', '📱 Cut screen time 1 hour before sleep']
               },
               {
                 id: 'ht_f2',
@@ -287,11 +271,7 @@
                 title: 'Strength Training & Cardio',
                 icon: '💪',
                 desc: 'Structured push-pull-legs splits paired with cardiovascular health.',
-                items: [
-                  '🏋️ 3-4 Strength workouts per week (Squat, Deadlift, Bench)',
-                  '🏃 2 Low-intensity cardio sessions maintaining 120-140 bpm',
-                  '📝 Progressive overload: Track weights and reps every session'
-                ]
+                items: ['🏋️️ 3-4 Strength workouts per week', '🏃 2 Low-intensity cardio sessions', '📝 Progressive overload: Track weights']
               },
               {
                 id: 'ht_f1',
@@ -299,11 +279,7 @@
                 title: 'Nutrition Base & Hydration',
                 icon: '🥗',
                 desc: 'Manage macronutrients and hydration balance.',
-                items: [
-                  '🥩 Consume 1.6-2.0g protein per kg bodyweight daily',
-                  '💧 Drink 2.5L to 3.0L water daily',
-                  '🥦 Include high-fiber vegetables with every meal, avoid ultra-processed foods'
-                ]
+                items: ['🥩 Consume 1.6-2.0g protein per kg bodyweight daily', '💧 Drink 2.5L to 3.0L water daily', '🥦 Include high-fiber vegetables with every meal']
               }
             ]
           },
@@ -312,13 +288,13 @@
             { id: 'ht_el_2', zh: '蛋白粉冲服温度切勿过高', en: 'Whey Protein: Avoid hot water to prevent clumping' }
           ],
           mysteryBox: [
-            { id: 'ht_mb_1', q_zh: '减脂期晚上饿了可以吃什么？', q_en: 'What can I eat when hungry late at night?', a_zh: '可以吃少许无糖脱脂黄瓜、蛋白霜或黄豆/水煮蛋白，避免高糖高碳水。', a_en: 'Egg whites, cucumber, or a scoop of casein protein with low carbs.', isSolved: true }
+            { id: 'ht_mb_1', q_zh: '减脂期晚上饿了可以吃什么？', q_en: 'What can I eat when hungry late at night?', a_zh: '可以吃少许无糖脱脂黄瓜、蛋白霜或水煮蛋白。', a_en: 'Egg whites, cucumber, or low-carb snacks.', isSolved: true }
           ],
           garden: {
             who_zh: '追求身心健康与强健体魄的自律者',
             who_en: 'Fitness enthusiast building a strong body',
-            future_zh: '体脂率稳定、精力充沛、掌控身体节奏的健康达人',
-            future_en: 'High-energy, physically fit individual in total control'
+            future_zh: '体脂率稳定、精力充沛的健康达人',
+            future_en: 'High-energy, physically fit individual'
           }
         }
       ]
@@ -328,11 +304,8 @@
 
     function loadUserData() {
       if (currentUser) {
-        // 同步登录用户的偏好语言
         const userSavedLang = localStorage.getItem(`cd_app_user_lang_${currentUser}`);
-        if (userSavedLang) {
-          lang = userSavedLang;
-        }
+        if (userSavedLang) lang = userSavedLang;
 
         const key = `cd_app_isolated_data_${currentUser}`;
         const raw = localStorage.getItem(key);
@@ -364,7 +337,6 @@
     }
 
     function openAuthModal() {
-      // 动态更新登录弹窗中的所有文案
       const isEn = (lang === 'en');
       document.getElementById('auth-modal-title').innerText = isEn ? '🔑 Login / Register' : '🔑 登录 / 注册';
       document.getElementById('auth-modal-desc').innerText = isEn 
@@ -395,7 +367,6 @@
       currentUser = cleanUser;
       localStorage.setItem('cd_app_active_session_user', currentUser);
 
-      // 如果此账号以前保存过语言首选项，则同步载入，否则同步当前界面语言给新账号
       const userSavedLang = localStorage.getItem(`cd_app_user_lang_${currentUser}`);
       if (userSavedLang) {
         lang = userSavedLang;
@@ -422,13 +393,8 @@
     }
 
     function getCurrentTower() {
-      if (!userData) return null;
-      let tower = userData.towers.find(t => t.id === userData.selectedTowerId);
-      if (!tower && userData.towers.length > 0) {
-        tower = userData.towers[0];
-        userData.selectedTowerId = tower.id;
-      }
-      return tower;
+      if (!userData || !userData.selectedTowerId) return null;
+      return userData.towers.find(t => t.id === userData.selectedTowerId) || null;
     }
 
     function switchTab(tab, towerId = null) {
@@ -483,7 +449,7 @@
       if (currentTower) {
         towerBadge.innerText = (lang === 'en' ? 'Active: ' : '当前: ') + currentTower[lang].name;
       } else {
-        towerBadge.innerText = lang === 'en' ? 'No Tower Selected' : '未选择大楼';
+        towerBadge.innerText = lang === 'en' ? 'Active: None' : '当前: 未选择';
       }
 
       const container = document.getElementById('main-container');
@@ -493,7 +459,7 @@
           <div class="space-y-4">
             <div class="flex justify-between items-center">
               <h2 class="text-xs font-black text-amber-900/60 uppercase tracking-widest">
-                ${lang === 'en' ? 'My Towers (Select to View)' : '大楼建筑群 (点击选择/进入)'}
+                ${lang === 'en' ? 'My Towers (Select to Enter)' : '大楼建筑群 (点击“进入”绑定当前大楼)'}
               </h2>
             </div>
             ${userData.towers.map(t => {
@@ -506,7 +472,7 @@
                       <span class="text-4xl">${t.icon || '🏢'}</span>
                       <div>
                         <h3 class="font-black text-amber-950 text-base flex items-center gap-1.5">
-                          ${data.name}${isSelected ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-100">${lang === 'en' ? 'Active' : '当前'}</span>` : ''}
+                          ${data.name}${isSelected ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-100">${lang === 'en' ? 'Active' : '当前已选'}</span>` : ''}
                         </h3>
                         <p class="text-xs text-amber-800/70 mt-0.5">${data.floors.length}${lang === 'en' ? 'Floors' : '层结构'}</p>
                       </div>
@@ -606,7 +572,33 @@
         `;
       } 
       else if (currentTab === 'locker') {
-        if (!currentTower) { switchTab('towers'); return; }
+        if (!currentTower) {
+          // 未选中大楼时：展示快递柜的系统功能与作用说明
+          container.innerHTML = `
+            <div class="space-y-4">
+              <div class="floor-section p-5 rounded-3xl bg-amber-100 text-center space-y-2">
+                <span class="text-4xl">📦</span>
+                <h2 class="text-lg font-black text-amber-950">${lang === 'en' ? 'Tower Express Locker' : '快递柜 - 临时暂存空间'}</h2>
+                <p class="text-xs text-amber-900 font-semibold leading-relaxed">
+                  ${lang === 'en' 
+                    ? 'The Express Locker serves as a quick-memo box for each specific tower. Use it to store temporary notes, checkout reminders, or unclassified rules before assigning them to a floor.' 
+                    : '快递柜是专门属于具体大楼的“临时备忘与寄存空间”。你可以在这里快速存入闪念卡片、购物避坑提醒或尚未分类的碎片规则，后续随时提取归档到具体楼层。'}
+                </p>
+              </div>
+
+              <div class="p-4 bg-white border-2 border-amber-900/20 rounded-2xl text-center space-y-3">
+                <p class="text-xs font-bold text-amber-900">
+                  ${lang === 'en' ? '👉 Please enter a specific tower from the Towers tab to manage its Locker.' : '👉 请先在“大楼”列表中点击【进入】某栋大楼，即可查看并管理该大楼的专属包裹。'}
+                </p>
+                <button onclick="switchTab('towers')" class="px-4 py-2 bg-amber-800 text-amber-50 rounded-xl text-xs font-black shadow">
+                  ${lang === 'en' ? 'Go to Towers List' : '返回选择大楼'} ➔
+                </button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
         const lockerItems = currentTower.expressLocker || [];
         container.innerHTML = `
           <div class="space-y-4">
@@ -631,7 +623,33 @@
         `;
       } 
       else if (currentTab === 'mystery') {
-        if (!currentTower) { switchTab('towers'); return; }
+        if (!currentTower) {
+          // 未选中大楼时：展示问答箱的系统功能与作用说明
+          container.innerHTML = `
+            <div class="space-y-4">
+              <div class="floor-section p-5 rounded-3xl bg-amber-100 text-center space-y-2">
+                <span class="text-4xl">❓</span>
+                <h2 class="text-lg font-black text-amber-950">${lang === 'en' ? 'Tower Mystery Box' : '问答箱 - 疑难解答盲盒'}</h2>
+                <p class="text-xs text-amber-900 font-semibold leading-relaxed">
+                  ${lang === 'en' 
+                    ? 'The Mystery Box helps you record unresolved doubts, cultural confusions, or open questions for a specific domain. Once solved, save the answer to form your permanent knowledge.' 
+                    : '问答箱是记录特定领域“认知盲区与尚未搞懂的问题”的黑板。当你遇到不理解的规则（如“为什么某商品要收税？”）时可在此提问，并在找到答案后补充解答，消除认知盲区。'}
+                </p>
+              </div>
+
+              <div class="p-4 bg-white border-2 border-amber-900/20 rounded-2xl text-center space-y-3">
+                <p class="text-xs font-bold text-amber-900">
+                  ${lang === 'en' ? '👉 Please select a tower first to view or ask questions.' : '👉 请先在“大楼”列表中点击【进入】某栋大楼，以查看或提问该领域的盲盒问题。'}
+                </p>
+                <button onclick="switchTab('towers')" class="px-4 py-2 bg-amber-800 text-amber-50 rounded-xl text-xs font-black shadow">
+                  ${lang === 'en' ? 'Go to Towers List' : '返回选择大楼'} ➔
+                </button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
         const mysteryItems = currentTower.mysteryBox || [];
         container.innerHTML = `
           <div class="space-y-4">
@@ -665,7 +683,33 @@
         `;
       } 
       else if (currentTab === 'garden') {
-        if (!currentTower) { switchTab('towers'); return; }
+        if (!currentTower) {
+          // 未选中大楼时：展示愿景花园的系统功能与作用说明
+          container.innerHTML = `
+            <div class="space-y-4">
+              <div class="floor-section p-5 rounded-3xl bg-amber-100 text-center space-y-2">
+                <span class="text-4xl">🌿</span>
+                <h2 class="text-lg font-black text-amber-950">${lang === 'en' ? 'Tower Personal Garden' : '愿景花园 - 身份定位与成长愿景'}</h2>
+                <p class="text-xs text-amber-900 font-semibold leading-relaxed">
+                  ${lang === 'en' 
+                    ? 'The Garden defines your identity evolution for each tower system. It answers: "Who are you now when building this tower?" and "What master will you become once this system is built?"' 
+                    : '愿景花园是记录你在此领域中“成长心智”的绿洲。它清晰地刻画出：你在建设这栋大楼时的“当前身份”以及大楼建成后你将成为的“未来目标形态”，为你提供长期驱动力。'}
+                </p>
+              </div>
+
+              <div class="p-4 bg-white border-2 border-amber-900/20 rounded-2xl text-center space-y-3">
+                <p class="text-xs font-bold text-amber-900">
+                  ${lang === 'en' ? '👉 Please select a tower first to view or set its growth vision.' : '👉 请先在“大楼”列表中点击【进入】某栋大楼，以设置或查看其对应的愿景花园。'}
+                </p>
+                <button onclick="switchTab('towers')" class="px-4 py-2 bg-amber-800 text-amber-50 rounded-xl text-xs font-black shadow">
+                  ${lang === 'en' ? 'Go to Towers List' : '返回选择大楼'} ➔
+                </button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
         const garden = currentTower.garden || { who_zh: 'None', who_en: 'None', future_zh: 'None', future_en: 'None' };
         container.innerHTML = `
           <div class="space-y-4">
@@ -692,11 +736,20 @@
         `;
       } 
       else if (currentTab === 'archive') {
+        // 全景 (Archive) 始终作为小区的“总地图与数据看板”
         const totalFloors = userData.towers.reduce((acc, t) => acc + t[lang].floors.length, 0);
         const totalItems = userData.towers.reduce((acc, t) => acc + t[lang].floors.reduce((fAcc, f) => fAcc + (f.items ? f.items.length : 0), 0), 0);
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-base font-black text-amber-950">🗺️ ${lang === 'en' ? 'District Master Archive' : '小区全景概览'}</h2>
+            <div class="floor-section p-5 rounded-3xl bg-amber-100 text-center space-y-1">
+              <span class="text-4xl">🗺️</span>
+              <h2 class="text-lg font-black text-amber-950">${lang === 'en' ? 'District Master Archive' : '全景 - 认知小区数据大盘'}</h2>
+              <p class="text-xs text-amber-900 font-semibold leading-relaxed">
+                ${lang === 'en' 
+                  ? 'Master Archive provides a bird-eye view of your entire cognitive district, aggregating stats across all towers, floors, and rules.' 
+                  : '全景是整个认知小区的鸟瞰地图与数据中心。不论你是否选中单栋大楼，此处都会实时统计你建立的所有领域大楼、剖面楼层及砖块规则数量。'}
+              </p>
+            </div>
             
             <div class="grid grid-cols-2 gap-3">
               <div class="floor-section p-4 rounded-2xl text-center">
@@ -705,7 +758,7 @@
               </div>
               <div class="floor-section p-4 rounded-2xl text-center">
                 <div class="text-3xl font-black text-amber-800">${totalFloors}</div>
-                <div class="text-xs text-amber-900/70 mt-1 font-bold">${lang === 'en' ? 'Total Floors' : '总剖面房间数'}</div>
+                <div class="text-xs text-amber-900/70 mt-1 font-bold">${lang === 'en' ? 'Total Floors' : '剖面楼层数'}</div>
               </div>
               <div class="col-span-2 floor-section p-4 rounded-2xl text-center">
                 <div class="text-3xl font-black text-emerald-700">${totalItems}</div>
@@ -740,7 +793,7 @@
         if (confirm(lang === 'en' ? 'Delete this entire building?' : '确定要拆除整栋大楼吗？')) {
           userData.towers = userData.towers.filter(t => t.id !== towerId);
           if (userData.selectedTowerId === towerId) {
-            userData.selectedTowerId = userData.towers.length > 0 ? userData.towers[0].id : null;
+            userData.selectedTowerId = null;
           }
           saveData();
           render();
@@ -971,6 +1024,7 @@
       const text = document.getElementById('modal-locker-input').value.trim();
       if (!text) return;
       const currentTower = getCurrentTower();
+      if (!currentTower) return;
       if (!currentTower.expressLocker) currentTower.expressLocker = [];
       currentTower.expressLocker.push({ id: 'el_' + Date.now(), zh: text, en: text });
       saveData();
@@ -981,6 +1035,7 @@
     function deleteLockerItem(id) {
       requireAuth(() => {
         const currentTower = getCurrentTower();
+        if (!currentTower) return;
         currentTower.expressLocker = currentTower.expressLocker.filter(i => i.id !== id);
         saveData();
         render();
@@ -1004,6 +1059,7 @@
       const q = document.getElementById('modal-mystery-q').value.trim();
       if (!q) return;
       const currentTower = getCurrentTower();
+      if (!currentTower) return;
       if (!currentTower.mysteryBox) currentTower.mysteryBox = [];
       currentTower.mysteryBox.push({ id: 'mb_' + Date.now(), q_zh: q, q_en: q, a_zh: '', a_en: '', isSolved: false });
       saveData();
@@ -1028,6 +1084,7 @@
       const ans = document.getElementById('modal-mystery-a').value.trim();
       if (!ans) return;
       const currentTower = getCurrentTower();
+      if (!currentTower) return;
       const item = currentTower.mysteryBox.find(m => m.id === id);
       if (item) {
         item.a_zh = ans;
@@ -1042,6 +1099,7 @@
     function deleteMysteryBox(id) {
       requireAuth(() => {
         const currentTower = getCurrentTower();
+        if (!currentTower) return;
         currentTower.mysteryBox = currentTower.mysteryBox.filter(m => m.id !== id);
         saveData();
         render();
@@ -1051,6 +1109,7 @@
     function openEditGardenModal() {
       requireAuth(() => {
         const currentTower = getCurrentTower();
+        if (!currentTower) return;
         const garden = currentTower.garden || { who_zh: '', who_en: '', future_zh: '', future_en: '' };
         showModal(`
           <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Personal Vision' : '编辑个人愿景'}</h3>
@@ -1068,6 +1127,7 @@
       const who = document.getElementById('modal-garden-who').value.trim();
       const future = document.getElementById('modal-garden-future').value.trim();
       const currentTower = getCurrentTower();
+      if (!currentTower) return;
       currentTower.garden = {
         who_zh: who, who_en: who,
         future_zh: future, future_en: future
