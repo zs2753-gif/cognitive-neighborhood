@@ -15,7 +15,6 @@
     }
     
     .font-handwritten { font-family: 'Caveat', cursive; }
-    /* Cozy paper & hand-drawn stroke aesthetics */
     .floor-section {
       background: #fefcf8;
       border: 3px solid #78350f;
@@ -29,7 +28,7 @@
   </style>
 </head>
 <body class="text-amber-950 pb-28 min-h-screen">
-  <!-- Header with Language Switcher & Auth State (NO USER SWITCHER DROP-DOWN) -->
+  <!-- Header with Language Switcher & Auth State -->
   <header id="app-header" class="sticky top-0 z-40 bg-[#f4efe6]/90 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('towers')">
       <span class="text-2xl">🏡</span>
@@ -61,7 +60,7 @@
       </div>
       
       <p class="text-xs text-amber-900 font-bold leading-relaxed">
-        您正在尝试编辑或自定义大楼。请登录或创建账号，以便保存您个人专属的数据。
+        您正在尝试编辑或自定义大楼。请登录或创建账号，以便同步您的语言设置及专属数据。
       </p>
       
       <div class="space-y-3 pt-1">
@@ -118,14 +117,13 @@
   </div>
 
   <script>
-    // Default language is ENGLISH ('en')
-    let lang = localStorage.getItem('cd_app_lang') || 'en';
     let currentTab = 'towers';
-    
-    // Auth Session (Null means Guest / Public preview mode)
     let currentUser = localStorage.getItem('cd_app_active_session_user') || null;
 
-    // Full Initial Seed Dataset (Includes BOTH Intl Student & Health Towers)
+    // 读取或初始化语言设置
+    let lang = localStorage.getItem('cd_app_lang') || 'en';
+
+    // Full Initial Seed Dataset
     const getInitialSeedData = () => ({
       selectedTowerId: 'intl_student',
       towers: [
@@ -145,9 +143,9 @@
                 desc: '掌握各超市与餐车的税收差异，不做冤大头。',
                 items: [
                   '🚚 Food Truck (餐车)：通常标价即终价，不用另外交税',
-                  '🎯 Target (超市)：未加工食物(生鲜/牛奶/面包)免税，但日用品与加工零食收税',
+                  '🎯 Target 类别差异：被子/床上用品税率与拖把等清洁工具有所区别（部分地区纺织品享受特定税收优惠，而拖把等日用杂货全额计税）',
                   '👕 衣物与鞋履税率：不同地区有免税额度阈值，超过部分按不同比率征税',
-                  '🍎 Appletree (特色超市)：大曲奇饼干、Sandwich Hero等手工加工品要收税，其余普通未加工杂货不用收税',
+                  '🍎 Appletree 超市：手工大曲奇等熟食烘焙品要收税，其余普通未加工生鲜杂货免税',
                   '🛍 Trader Joe\'s (缺角大叔)：需按商品分类交税，加工食品/饮料/日用品结账时计算消费税'
                 ]
               },
@@ -182,10 +180,10 @@
                 desc: 'Know tax differences across food trucks, Target, and grocery stores.',
                 items: [
                   '🚚 Food Truck: Listed price is usually final price without extra tax',
-                  '🎯 Target: Unprocessed raw food exempt; household items & snacks taxable',
+                  '🎯 Target Category Rules: Tax on comforters/bedding differs from mops and cleaning tools',
                   '👕 Clothing Tax: Clothing below specific dollar limit exempt, tiered rates above',
-                  '🍎 Appletree Market: Fresh baked giant cookies & Sandwich Hero taxable; raw groceries exempt',
-                  '🛍️️ Trader Joe\'s: Sales tax calculated at checkout for prepared food & non-food items'
+                  '🍎 Appletree Market: Handmade giant cookies are taxable; raw groceries remain tax-exempt',
+                  '🛍 Trader Joe\'s: Sales tax calculated at checkout for prepared food & non-food items'
                 ]
               },
               {
@@ -207,11 +205,11 @@
             ]
           },
           expressLocker: [
-            { id: 'el_1', zh: 'Appletree 结账提醒：买大曲奇看小票有没有 Tax 标志', en: 'Appletree Tip: Check receipt tax flag for giant cookies' },
-            { id: 'el_2', zh: 'Target 区分生鲜和便利微波食品', en: 'Target Note: Raw groceries tax-free, heated food taxed' }
+            { id: 'el_1', zh: 'Appletree 提醒：手工大曲奇要收税，小票上需确认 Tax 标志', en: 'Appletree Tip: Handmade giant cookies ARE taxable!' },
+            { id: 'el_2', zh: 'Target 结账提醒：买被子与买拖把的税收规则不一样，请分开核对小票', en: 'Target Note: Tax rate for comforters differs from mops/cleaning gear' }
           ],
           mysteryBox: [
-            { id: 'mb_1', q_zh: '为什么 Food Truck 经常不额外算税？', q_en: 'Why do food trucks charge no extra tax?', a_zh: '餐车通常采用包税定价（Tax-inclusive Pricing），售价已包含消费税。', a_en: 'Food trucks usually use tax-inclusive pricing with tax built into the sticker price.', isSolved: true }
+            { id: 'mb_1', q_zh: '为什么 Appletree 的手工大曲奇要收税？', q_en: 'Why are Appletree handmade giant cookies taxed?', a_zh: '因为手工曲奇被归类为经过加工的即食烘焙食品（Prepared Food），不属于免税的原始生鲜食材。', a_en: 'Handmade cookies are classified as prepared bakery goods rather than tax-free raw groceries.', isSolved: true }
           ],
           garden: {
             who_zh: '初到海外、准备建立生活规则的国际学生',
@@ -222,7 +220,7 @@
         },
         {
           id: 'health_tower',
-          icon: '🏋️‍♂️',
+          icon: '🏋️️‍♂️',
           zh: {
             name: '健康管理大楼',
             slogan: '科学健身与营养膳食，打造精力充沛的强健体魄。',
@@ -330,6 +328,12 @@
 
     function loadUserData() {
       if (currentUser) {
+        // 同步登录用户的偏好语言
+        const userSavedLang = localStorage.getItem(`cd_app_user_lang_${currentUser}`);
+        if (userSavedLang) {
+          lang = userSavedLang;
+        }
+
         const key = `cd_app_isolated_data_${currentUser}`;
         const raw = localStorage.getItem(key);
         if (raw) {
@@ -339,7 +343,6 @@
           saveData();
         }
       } else {
-        // Guest mode: load initial default seed data directly
         userData = getInitialSeedData();
       }
     }
@@ -347,11 +350,11 @@
     function saveData() {
       if (currentUser && userData) {
         localStorage.setItem(`cd_app_isolated_data_${currentUser}`, JSON.stringify(userData));
+        localStorage.setItem(`cd_app_user_lang_${currentUser}`, lang);
       }
       localStorage.setItem('cd_app_lang', lang);
     }
 
-    // Require Auth Check for Write Actions
     function requireAuth(actionCallback) {
       if (!currentUser) {
         openAuthModal();
@@ -368,7 +371,6 @@
       document.getElementById('auth-modal').classList.add('hidden');
     }
 
-    // Auth Handlers
     function handleLogin() {
       const uInput = document.getElementById('auth-username').value.trim();
       if (!uInput) return alert(lang === 'en' ? 'Please enter a username' : '请输入用户名');
@@ -376,6 +378,15 @@
       
       currentUser = cleanUser;
       localStorage.setItem('cd_app_active_session_user', currentUser);
+
+      // 如果此账号以前保存过语言首选项，则同步载入，否则同步当前界面语言给新账号
+      const userSavedLang = localStorage.getItem(`cd_app_user_lang_${currentUser}`);
+      if (userSavedLang) {
+        lang = userSavedLang;
+      } else {
+        localStorage.setItem(`cd_app_user_lang_${currentUser}`, lang);
+      }
+
       loadUserData();
       closeAuthModal();
       render();
@@ -426,7 +437,6 @@
     function render() {
       if (!userData) loadUserData();
 
-      // Render Header Auth Button
       const authHeaderBtn = document.getElementById('auth-header-btn');
       if (currentUser) {
         authHeaderBtn.innerHTML = `
@@ -445,7 +455,6 @@
         `;
       }
 
-      // Dynamic Labels
       document.getElementById('lbl-towers').innerText = lang === 'en' ? 'Towers' : '大楼';
       document.getElementById('lbl-locker').innerText = lang === 'en' ? 'Locker' : '快递柜';
       document.getElementById('lbl-mystery').innerText = lang === 'en' ? 'Mystery' : '问答箱';
@@ -463,7 +472,6 @@
 
       const container = document.getElementById('main-container');
 
-      // ---------------- TAB 1: TOWERS LIST ----------------
       if (currentTab === 'towers') {
         container.innerHTML = `
           <div class="space-y-4">
@@ -507,7 +515,6 @@
           </div>
         `;
       } 
-      // ---------------- TAB 1.5: TOWER DETAIL VIEW ----------------
       else if (currentTab === 'tower_detail') {
         if (!currentTower) { switchTab('towers'); return; }
         const data = currentTower[lang];
@@ -521,7 +528,6 @@
                 + ${lang === 'en' ? 'Build Floor' : '加盖新楼层'}
               </button>
             </div>
-            <!-- Tower Roof Card -->
             <div class="bg-amber-100 border-3 border-amber-900 p-5 rounded-3xl mb-5 text-center relative shadow-md">
               <button onclick="openEditTowerInfoModal('${currentTower.id}')" class="absolute top-3 right-3 text-[11px] bg-amber-200 px-2 py-1 rounded-lg border border-amber-400 font-bold">
                 ✏️ ${lang === 'en' ? 'Edit Info' : '编辑此楼'}
@@ -532,9 +538,8 @@
                 🎯 ${lang === 'en' ? 'Vision' : '愿景'}: ${data.vision}
               </p>
             </div>
-            <!-- Floor Stack -->
             <div class="space-y-4">
-              ${data.floors.map((f, fIdx) => `
+              ${data.floors.map((f) => `
                 <div class="floor-section rounded-2xl p-4 relative">
                   <div class="flex justify-between items-center border-b border-amber-900/10 pb-2.5 mb-3">
                     <div class="flex items-center space-x-2">
@@ -553,7 +558,6 @@
                   <div class="bg-amber-50/80 p-2.5 rounded-xl border border-amber-900/10 mb-3">
                     <p class="text-xs text-amber-900 font-medium leading-relaxed">${f.desc || (lang === 'en' ? 'No description' : '暂无描述')}</p>
                   </div>
-                  <!-- Checklist Items -->
                   <div class="bg-white p-3 rounded-xl border border-amber-900/20 space-y-2">
                     <span class="text-[10px] font-black text-amber-800 uppercase tracking-wider block border-b border-amber-100 pb-1">
                       ${lang === 'en' ? 'Rules & Checklist Items' : '楼层规则与清单条目'}:
@@ -585,7 +589,6 @@
           </div>
         `;
       } 
-      // ---------------- TAB 2: EXPRESS LOCKER ----------------
       else if (currentTab === 'locker') {
         if (!currentTower) { switchTab('towers'); return; }
         const lockerItems = currentTower.expressLocker || [];
@@ -599,7 +602,7 @@
               ${lockerItems.length > 0 ? lockerItems.map(item => `
                 <div class="floor-section p-4 rounded-2xl text-xs text-amber-900 flex justify-between items-center">
                   <span>${lang === 'en' ? item.en : item.zh}</span>
-                  <button onclick="deleteLockerItem('${item.id}')" class="text-xs text-rose-700 bg-rose-100 px-2 py-1 rounded-lg font-bold ml-2">
+                  <button onclick="deleteLockerItem('${item.id}')" class="text-xs text-rose-700 bg-rose-100 px-2 py-1 rounded-lg font-bold ml-2 shrink-0">
                     ${lang === 'en' ? 'Remove' : '取出'}
                   </button>
                 </div>
@@ -611,7 +614,6 @@
           </div>
         `;
       } 
-      // ---------------- TAB 3: MYSTERY BOX ----------------
       else if (currentTab === 'mystery') {
         if (!currentTower) { switchTab('towers'); return; }
         const mysteryItems = currentTower.mysteryBox || [];
@@ -646,7 +648,6 @@
           </div>
         `;
       } 
-      // ---------------- TAB 4: PERSONAL GARDEN ----------------
       else if (currentTab === 'garden') {
         if (!currentTower) { switchTab('towers'); return; }
         const garden = currentTower.garden || { who_zh: 'None', who_en: 'None', future_zh: 'None', future_en: 'None' };
@@ -674,7 +675,6 @@
           </div>
         `;
       } 
-      // ---------------- TAB 5: ARCHIVE ----------------
       else if (currentTab === 'archive') {
         const totalFloors = userData.towers.reduce((acc, t) => acc + t[lang].floors.length, 0);
         const totalItems = userData.towers.reduce((acc, t) => acc + t[lang].floors.reduce((fAcc, f) => fAcc + (f.items ? f.items.length : 0), 0), 0);
@@ -700,7 +700,7 @@
             <div class="bg-amber-100 p-4 rounded-2xl border border-amber-900/20 text-xs text-amber-900 space-y-1 text-center">
               <p class="font-bold">${currentUser ? '🛡️ 专属账号模式 (已登录)' : '👀 游客预览模式'}</p>
               <p class="opacity-80">
-                ${currentUser ? `当前正在编辑 ${currentUser} 的专属规则空间。` : '当前处于浏览模式，如需编辑大楼或添加内容，请随时点击登录/注册。'}
+                ${currentUser ? `当前正在编辑 ${currentUser} 的专属规则空间（已同步语言及个性化数据）。` : '当前处于浏览模式，如需编辑大楼或添加内容，请随时点击登录/注册。'}
               </p>
             </div>
           </div>
@@ -708,7 +708,7 @@
       }
     }
 
-    // Modal Helper Actions
+    // Modal Action Handlers
     function selectAndOpenTower(id) {
       userData.selectedTowerId = id;
       saveData();
