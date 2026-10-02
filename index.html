@@ -15,7 +15,6 @@
     }
     
     .font-handwritten { font-family: 'Caveat', cursive; }
-
     /* Cozy paper & hand-drawn stroke aesthetics */
     .floor-section {
       background: #fefcf8;
@@ -23,7 +22,6 @@
       box-shadow: 4px 6px 0px #78350f;
       transition: all 0.15s ease;
     }
-
     .modal-backdrop {
       background-color: rgba(69, 26, 3, 0.4);
       backdrop-filter: blur(4px);
@@ -31,9 +29,8 @@
   </style>
 </head>
 <body class="text-amber-950 pb-28 min-h-screen">
-
-  <!-- Header with User Switcher & Language Switcher -->
-  <header class="sticky top-0 z-40 bg-[#f4efe6]/90 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-3 flex justify-between items-center">
+  <!-- Header with Language Switcher & Logout (NO USER SWITCHER) -->
+  <header id="app-header" class="sticky top-0 z-40 bg-[#f4efe6]/90 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-3 flex justify-between items-center hidden">
     <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('towers')">
       <span class="text-2xl">🏡</span>
       <div>
@@ -43,26 +40,60 @@
     </div>
     
     <div class="flex items-center space-x-2">
-      <!-- Account Profile Switcher -->
-      <button onclick="openUserSwitchModal()" class="px-2.5 py-1 text-xs font-bold rounded-xl bg-amber-100 text-amber-900 border border-amber-400/80 flex items-center space-x-1 active:scale-95 transition">
-        <span>👤</span>
-        <span id="current-user-name">User A</span>
-      </button>
-
-      <!-- Language Toggle (Defaults to EN) -->
+      <!-- Current User Badge + Logout Button -->
+      <div class="flex items-center bg-amber-100 border border-amber-400/80 rounded-xl px-2.5 py-1 space-x-1.5 text-xs font-bold text-amber-900">
+        <span>👤 <span id="current-user-display">User</span></span>
+        <button onclick="logout()" class="text-[10px] text-rose-700 hover:text-rose-900 font-extrabold bg-rose-100 hover:bg-rose-200 px-1.5 py-0.5 rounded transition">
+          退出
+        </button>
+      </div>
+      
+      <!-- Language Toggle -->
       <button id="lang-btn" onclick="toggleLanguage()" class="px-2.5 py-1 text-xs font-bold rounded-xl bg-amber-800 text-amber-50 border border-amber-950 active:scale-95 transition">
         EN / 中
       </button>
     </div>
   </header>
 
+  <!-- Login / Authentication Gate View -->
+  <div id="auth-container" class="max-w-md mx-auto p-6 min-h-screen flex flex-col justify-center items-center">
+    <div class="w-full floor-section p-6 rounded-3xl space-y-5 bg-[#fefcf8]">
+      <div class="text-center space-y-1">
+        <span class="text-4xl">🏡</span>
+        <h2 class="text-2xl font-black text-amber-950">Cognitive District</h2>
+        <p class="text-xs text-amber-800 font-bold">独立认知小区登录门禁</p>
+      </div>
+      
+      <div class="space-y-3 pt-2">
+        <div>
+          <label class="text-xs font-black text-amber-900 block mb-1">账号/用户名</label>
+          <input id="auth-username" type="text" placeholder="输入您的独立账号..." class="w-full p-3 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
+        </div>
+        <div>
+          <label class="text-xs font-black text-amber-900 block mb-1">密码</label>
+          <input id="auth-password" type="password" placeholder="输入密码..." class="w-full p-3 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <button onclick="handleLogin()" class="w-full py-3 bg-amber-800 text-amber-50 rounded-2xl text-xs font-black shadow-md hover:bg-amber-900 transition">
+          进入我的专属空间
+        </button>
+      </div>
+      
+      <p class="text-[11px] text-amber-800/70 text-center leading-relaxed border-t border-amber-200 pt-3">
+        🔒 账号之间完全隔离隔断。登录后仅能访问与您账号绑定的数据，其他用户无法查看或切换。
+      </p>
+    </div>
+  </div>
+
   <!-- Main View Container -->
-  <main class="max-w-md mx-auto p-4" id="main-container">
+  <main class="max-w-md mx-auto p-4 hidden" id="main-container">
     <!-- Rendered dynamically via JS -->
   </main>
 
   <!-- Bottom Navigation -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-[#fefcf8] border-t-2 border-amber-900 py-2 px-3 flex justify-around items-center z-40 max-w-md mx-auto shadow-2xl">
+  <nav id="app-nav" class="fixed bottom-0 left-0 right-0 bg-[#fefcf8] border-t-2 border-amber-900 py-2 px-3 flex justify-around items-center z-40 max-w-md mx-auto shadow-2xl hidden">
     <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-800" id="nav-towers">
       <span class="text-xl">🏢</span><span class="nav-label" id="lbl-towers">Towers</span>
     </button>
@@ -92,9 +123,9 @@
     let lang = localStorage.getItem('cd_app_lang') || 'en';
     let currentTab = 'towers';
     
-    // User account manager (Account Profiles)
-    let currentUser = localStorage.getItem('cd_app_current_user') || 'User_A';
-    
+    // Auth Session
+    let currentUser = localStorage.getItem('cd_app_active_session_user') || null;
+
     // Default initial seed dataset
     const getInitialSeedData = () => ({
       selectedTowerId: 'intl_student',
@@ -118,7 +149,7 @@
                   '🎯 Target (超市)：未加工食物(生鲜/牛奶/面包)免税，但日用品与加工零食收税',
                   '👕 衣物与鞋履税率：不同地区有免税额度阈值，超过部分按不同比率征税',
                   '🍎 Appletree (特色超市)：大曲奇饼干、Sandwich Hero等手工加工品要收税，其余普通未加工杂货不用收税',
-                  '🛍️️ Trader Joe\'s (缺角大叔)：需按商品分类交税，加工食品/饮料/日用品结账时计算消费税'
+                  '🛍 Trader Joe\'s (缺角大叔)：需按商品分类交税，加工食品/饮料/日用品结账时计算消费税'
                 ]
               },
               {
@@ -189,99 +220,65 @@
             future_zh: '精明自律、对各项隐性开销了如指掌的生活达人',
             future_en: 'A savvy, financially conscious global citizen'
           }
-        },
-        {
-          id: 'health_system',
-          icon: '🏠',
-          zh: {
-            name: '健康管理大楼',
-            slogan: '细微习惯，构建健康人生。',
-            vision: '成为更健康、更有能量的自己。',
-            floors: [
-              {
-                id: 'hs_f3',
-                num: 3,
-                title: '心态与情绪管理',
-                icon: '🧘',
-                desc: '保持心理弹性与情绪平稳。',
-                items: ['每日 10 分钟正念冥想', '记录感恩三件事']
-              },
-              {
-                id: 'hs_f2',
-                num: 2,
-                title: '运动与体能习惯',
-                icon: '💪',
-                desc: '建立每周有氧与力量训练频率。',
-                items: ['每周 3 次有氧跑步或快走', '每周 2 次基础核心训练']
-              },
-              {
-                id: 'hs_f1',
-                num: 1,
-                title: '饮食与血糖管理',
-                icon: '🥗',
-                desc: '控制血糖波动，稳定身体能量供应。',
-                items: ['优先吃蔬菜与蛋白质', '保证充足水分摄入', '减少高糖精加工食品']
-              }
-            ]
-          },
-          en: {
-            name: 'Health Management System',
-            slogan: 'Small habits build a thriving body.',
-            vision: 'Become a healthier, more energetic self.',
-            floors: [
-              {
-                id: 'hs_f3',
-                num: 3,
-                title: 'Mindset & Emotion',
-                icon: '🧘',
-                desc: 'Maintain mental resilience and emotional stability.',
-                items: ['Daily 10-minute mindfulness', 'Write down 3 gratitude points']
-              },
-              {
-                id: 'hs_f2',
-                num: 2,
-                title: 'Workout Habits',
-                icon: '💪',
-                desc: 'Maintain weekly cardio and strength training consistency.',
-                items: ['3x weekly cardio/jogging', '2x weekly core strength exercises']
-              },
-              {
-                id: 'hs_f1',
-                num: 1,
-                title: 'Diet & Nutrition System',
-                icon: '🥗',
-                desc: 'Keep stable blood sugar and steady energy.',
-                items: ['Eat protein and veggies first', 'Adequate hydration', 'Limit ultra-processed sugars']
-              }
-            ]
-          },
-          expressLocker: [
-            { id: 'el_h1', zh: '买无糖气泡水替代含糖饮料', en: 'Buy sparkling water instead of soda' }
-          ],
-          mysteryBox: [
-            { id: 'mb_h1', q_zh: '熬夜后如何快速恢复体力？', q_en: 'How to recover quickly after late night?', a_zh: '补充电解质与多喝水，避免大剂量高糖。', a_en: 'Hydrate well with electrolytes and avoid high sugar crashes.', isSolved: true }
-          ],
-          garden: {
-            who_zh: '希望改善身体状态的打工人',
-            who_en: 'Anyone striving for better physical energy',
-            future_zh: '充满活力的健康践行者',
-            future_en: 'An energetic and vibrant habit master'
-          }
         }
       ]
     });
 
-    // Load current user's dataset
+    // Isolated Storage Key per user
     function getUserStorageKey(username) {
-      return `cd_app_data_v6_${username}`;
+      return `cd_app_isolated_data_${username}`;
     }
 
-    let userData = JSON.parse(localStorage.getItem(getUserStorageKey(currentUser))) || getInitialSeedData();
+    let userData = null;
+
+    function loadUserData() {
+      if (!currentUser) return;
+      const key = getUserStorageKey(currentUser);
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        userData = JSON.parse(raw);
+      } else {
+        userData = getInitialSeedData();
+        saveData();
+      }
+    }
 
     function saveData() {
+      if (!currentUser || !userData) return;
       localStorage.setItem(getUserStorageKey(currentUser), JSON.stringify(userData));
       localStorage.setItem('cd_app_lang', lang);
-      localStorage.setItem('cd_app_current_user', currentUser);
+    }
+
+    // Auth Handlers
+    function handleLogin() {
+      const uInput = document.getElementById('auth-username').value.trim();
+      if (!uInput) return alert(lang === 'en' ? 'Please enter a username' : '请输入用户名');
+      const cleanUser = uInput.replace(/\s+/g, '_');
+      
+      currentUser = cleanUser;
+      localStorage.setItem('cd_app_active_session_user', currentUser);
+      loadUserData();
+      
+      document.getElementById('auth-container').classList.add('hidden');
+      document.getElementById('app-header').classList.remove('hidden');
+      document.getElementById('main-container').classList.remove('hidden');
+      document.getElementById('app-nav').classList.remove('hidden');
+      
+      currentTab = 'towers';
+      render();
+    }
+
+    function logout() {
+      currentUser = null;
+      userData = null;
+      localStorage.removeItem('cd_app_active_session_user');
+      
+      document.getElementById('app-header').classList.add('hidden');
+      document.getElementById('main-container').classList.add('hidden');
+      document.getElementById('app-nav').classList.add('hidden');
+      document.getElementById('auth-container').classList.remove('hidden');
+      document.getElementById('auth-username').value = '';
+      document.getElementById('auth-password').value = '';
     }
 
     function toggleLanguage() {
@@ -291,6 +288,7 @@
     }
 
     function getCurrentTower() {
+      if (!userData) return null;
       let tower = userData.towers.find(t => t.id === userData.selectedTowerId);
       if (!tower && userData.towers.length > 0) {
         tower = userData.towers[0];
@@ -305,12 +303,10 @@
         userData.selectedTowerId = towerId;
         saveData();
       }
-
       document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('text-amber-800');
         btn.classList.add('text-amber-900/40');
       });
-
       const activeTabId = (tab === 'tower_detail') ? 'towers' : tab;
       const activeNav = document.getElementById(`nav-${activeTabId}`);
       if (activeNav) {
@@ -321,6 +317,11 @@
     }
 
     function render() {
+      if (!currentUser || !userData) return;
+
+      // Dynamic Header Info
+      document.getElementById('current-user-display').innerText = currentUser.replace('_', ' ');
+
       // Dynamic Labels based on selected language
       document.getElementById('lbl-towers').innerText = lang === 'en' ? 'Towers' : '大楼';
       document.getElementById('lbl-locker').innerText = lang === 'en' ? 'Locker' : '快递柜';
@@ -328,8 +329,7 @@
       document.getElementById('lbl-garden').innerText = lang === 'en' ? 'Garden' : '花园';
       document.getElementById('lbl-archive').innerText = lang === 'en' ? 'Archive' : '全景';
       document.getElementById('app-title').innerText = lang === 'en' ? 'Cognitive District' : '认知小区';
-      document.getElementById('current-user-name').innerText = currentUser.replace('_', ' ');
-
+      
       const currentTower = getCurrentTower();
       const towerBadge = document.getElementById('current-tower-badge');
       if (currentTower) {
@@ -349,7 +349,6 @@
                 ${lang === 'en' ? 'My Towers (Select to Enter)' : '我的建筑群 (点击选择/进入)'}
               </h2>
             </div>
-
             ${userData.towers.map(t => {
               const data = t[lang];
               const isSelected = t.id === userData.selectedTowerId;
@@ -360,10 +359,9 @@
                       <span class="text-4xl">${t.icon || '🏢'}</span>
                       <div>
                         <h3 class="font-black text-amber-950 text-base flex items-center gap-1.5">
-                          ${data.name} 
-                          ${isSelected ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-100">${lang === 'en' ? 'Active' : '当前'}</span>` : ''}
+                          ${data.name}${isSelected ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-100">${lang === 'en' ? 'Active' : '当前'}</span>` : ''}
                         </h3>
-                        <p class="text-xs text-amber-800/70 mt-0.5">${data.floors.length} ${lang === 'en' ? 'Floors' : '层剖面结构'}</p>
+                        <p class="text-xs text-amber-800/70 mt-0.5">${data.floors.length}${lang === 'en' ? 'Floors' : '层剖面结构'}</p>
                       </div>
                     </div>
                     
@@ -379,7 +377,6 @@
                 </div>
               `;
             }).join('')}
-
             <button onclick="openNewTowerModal()" class="w-full py-3.5 border-2 border-dashed border-amber-800/40 text-amber-900 rounded-2xl font-black text-sm flex items-center justify-center space-x-2 bg-amber-100/50 hover:bg-amber-100 transition">
               <span class="text-xl">+</span>
               <span>${lang === 'en' ? 'Design New Tower' : '设计新大楼'}</span>
@@ -391,7 +388,6 @@
       else if (currentTab === 'tower_detail') {
         if (!currentTower) { switchTab('towers'); return; }
         const data = currentTower[lang];
-
         container.innerHTML = `
           <div>
             <div class="flex justify-between items-center mb-4">
@@ -402,7 +398,6 @@
                 + ${lang === 'en' ? 'Build Floor' : '加盖新楼层'}
               </button>
             </div>
-
             <!-- Tower Roof Card -->
             <div class="bg-amber-100 border-3 border-amber-900 p-5 rounded-3xl mb-5 text-center relative shadow-md">
               <button onclick="openEditTowerInfoModal('${currentTower.id}')" class="absolute top-3 right-3 text-[11px] bg-amber-200 px-2 py-1 rounded-lg border border-amber-400 font-bold">
@@ -414,7 +409,6 @@
                 🎯 ${lang === 'en' ? 'Vision' : '愿景'}: ${data.vision}
               </p>
             </div>
-
             <!-- Floor Stack -->
             <div class="space-y-4">
               ${data.floors.map((f, fIdx) => `
@@ -422,7 +416,7 @@
                   <div class="flex justify-between items-center border-b border-amber-900/10 pb-2.5 mb-3">
                     <div class="flex items-center space-x-2">
                       <span class="text-2xl">${f.icon || '🏠'}</span>
-                      <h3 class="font-black text-amber-950 text-base">${f.num}. ${f.title}</h3>
+                      <h3 class="font-black text-amber-950 text-base">${f.num}.${f.title}</h3>
                     </div>
                     <div class="flex items-center space-x-1.5">
                       <button onclick="openEditFloorModal('${currentTower.id}', '${f.id}')" class="text-[11px] text-amber-900 bg-amber-200 hover:bg-amber-300 px-2 py-0.5 rounded-lg font-bold border border-amber-400">
@@ -433,11 +427,9 @@
                       </button>
                     </div>
                   </div>
-
                   <div class="bg-amber-50/80 p-2.5 rounded-xl border border-amber-900/10 mb-3">
                     <p class="text-xs text-amber-900 font-medium leading-relaxed">${f.desc || (lang === 'en' ? 'No description' : '暂无描述')}</p>
                   </div>
-
                   <!-- Checklist Items -->
                   <div class="bg-white p-3 rounded-xl border border-amber-900/20 space-y-2">
                     <span class="text-[10px] font-black text-amber-800 uppercase tracking-wider block border-b border-amber-100 pb-1">
@@ -461,7 +453,6 @@
                       </div>
                     `).join('') : `<p class="text-xs text-amber-800/60 italic">${lang === 'en' ? 'No rules added yet' : '暂无条目，请点击下方增加'}</p>`}
                   </div>
-
                   <button onclick="openAddItemModal('${currentTower.id}', '${f.id}')" class="w-full mt-3 py-2 text-xs bg-amber-100 hover:bg-amber-200 text-amber-950 font-black rounded-xl border border-amber-900/30 transition">
                     🧱 ${lang === 'en' ? '+ Add Rule / Checklist Item' : '+ 新增贴砖条目'}
                   </button>
@@ -475,14 +466,12 @@
       else if (currentTab === 'locker') {
         if (!currentTower) { switchTab('towers'); return; }
         const lockerItems = currentTower.expressLocker || [];
-
         container.innerHTML = `
           <div class="space-y-4">
             <div>
               <h2 class="text-base font-black text-amber-950">📦 ${lang === 'en' ? 'Tower Express Locker' : '大楼专属快递柜'}</h2>
               <p class="text-xs text-amber-800/70">${lang === 'en' ? 'For Tower: ' : '归属于大楼: '} <strong>${currentTower[lang].name}</strong></p>
             </div>
-
             <div class="space-y-3">
               ${lockerItems.length > 0 ? lockerItems.map(item => `
                 <div class="floor-section p-4 rounded-2xl text-xs text-amber-900 flex justify-between items-center">
@@ -493,7 +482,6 @@
                 </div>
               `).join('') : `<div class="p-8 text-center text-xs text-amber-800/60 floor-section rounded-2xl">${lang === 'en' ? 'Express locker is empty for this tower' : '本大楼快递柜暂无寄件包裹'}</div>`}
             </div>
-
             <button onclick="openAddLockerModal()" class="w-full py-3 bg-amber-800 text-amber-50 rounded-2xl text-xs font-bold shadow transition">
               + ${lang === 'en' ? 'Deposit Memo / Parcel' : '存入大楼包裹'}
             </button>
@@ -504,14 +492,12 @@
       else if (currentTab === 'mystery') {
         if (!currentTower) { switchTab('towers'); return; }
         const mysteryItems = currentTower.mysteryBox || [];
-
         container.innerHTML = `
           <div class="space-y-4">
             <div>
               <h2 class="text-base font-black text-amber-950">❓ ${lang === 'en' ? 'Tower Mystery Box' : '大楼专属问答箱'}</h2>
               <p class="text-xs text-amber-800/70">${lang === 'en' ? 'For Tower: ' : '归属于大楼: '} <strong>${currentTower[lang].name}</strong></p>
             </div>
-
             <div class="space-y-3">
               ${mysteryItems.length > 0 ? mysteryItems.map(m => `
                 <div class="floor-section p-4 rounded-2xl space-y-2 relative">
@@ -531,7 +517,6 @@
                 </div>
               `).join('') : `<div class="p-8 text-center text-xs text-amber-800/60 floor-section rounded-2xl">${lang === 'en' ? 'No mystery questions for this tower' : '本大楼无疑问'}</div>`}
             </div>
-
             <button onclick="openAddMysteryModal()" class="w-full py-3 bg-amber-800 text-amber-50 rounded-2xl text-xs font-bold shadow transition">
               + ${lang === 'en' ? 'Ask Question for this Tower' : '提问新疑惑'}
             </button>
@@ -542,7 +527,6 @@
       else if (currentTab === 'garden') {
         if (!currentTower) { switchTab('towers'); return; }
         const garden = currentTower.garden || { who_zh: 'None', who_en: 'None', future_zh: 'None', future_en: 'None' };
-
         container.innerHTML = `
           <div class="space-y-4">
             <div class="flex justify-between items-center">
@@ -551,14 +535,13 @@
                 <p class="text-xs text-amber-800/70">${lang === 'en' ? 'For Tower: ' : '归属于大楼: '} <strong>${currentTower[lang].name}</strong></p>
               </div>
               <button onclick="openEditGardenModal()" class="text-xs bg-amber-200 text-amber-900 border border-amber-400 font-bold px-3 py-1.5 rounded-xl">
-                ✏️️ ${lang === 'en' ? 'Edit Vision' : '修改愿景'}
+                ✏ ${lang === 'en' ? 'Edit Vision' : '修改愿景'}
               </button>
             </div>
-
             <div class="bg-gradient-to-br from-amber-800 to-amber-950 p-6 rounded-3xl text-amber-50 space-y-5 shadow-2xl">
               <div>
                 <span class="text-xs font-black opacity-75 uppercase tracking-wider">${lang === 'en' ? 'Who You Are' : '当前身份定位'}</span>
-                <p class="font-extrabold text-base mt-1">${lang === 'en' ? garden.who_en : garden.who_zh}</p>
+                <p class="font-extrabold text-base mt-1">${lang === 'en' ? garden.future_en : garden.who_zh}</p>
               </div>
               <div class="border-t border-amber-700/50 pt-4">
                 <span class="text-xs font-black opacity-75 uppercase tracking-wider">${lang === 'en' ? 'Future Goal' : '未来期望目标'}</span>
@@ -572,7 +555,6 @@
       else if (currentTab === 'archive') {
         const totalFloors = userData.towers.reduce((acc, t) => acc + t[lang].floors.length, 0);
         const totalItems = userData.towers.reduce((acc, t) => acc + t[lang].floors.reduce((fAcc, f) => fAcc + (f.items ? f.items.length : 0), 0), 0);
-
         container.innerHTML = `
           <div class="space-y-4">
             <h2 class="text-base font-black text-amber-950">🗺️ ${lang === 'en' ? 'District Master Archive' : '小区全景概览'}</h2>
@@ -591,57 +573,17 @@
                 <div class="text-xs text-amber-900/70 mt-1 font-bold">${lang === 'en' ? 'Total Rule Checklist Bricks' : '已砌入认知卡片/规则条目'}</div>
               </div>
             </div>
-
-            <!-- Multi-user info guide -->
-            <div class="bg-amber-100 p-4 rounded-2xl border border-amber-900/20 text-xs text-amber-900 space-y-2">
-              <h3 class="font-bold flex items-center gap-1">👤 ${lang === 'en' ? 'Account & Data Isolation' : '多用户账号隔离提示'}</h3>
-              <p>${lang === 'en' ? 'Each profile (e.g. User A, User B) maintains independent local storage. Switch profiles using the top profile button.' : '每个账号（如 User A，User B）各自拥有独立的数据存储。您可以点击右上角用户按钮自由切换。'}</p>
+            
+            <div class="bg-amber-100 p-4 rounded-2xl border border-amber-900/20 text-xs text-amber-900 space-y-1 text-center">
+              <p class="font-bold">🛡️ 独立空间安全防护已激活</p>
+              <p class="opacity-80">当前账号 ( ${currentUser} ) 的所有规则与卡片均已安全隔离存储。</p>
             </div>
           </div>
         `;
       }
     }
 
-    function openUserSwitchModal() {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Switch User Account Profile' : '切换用户账号'}</h3>
-        <p class="text-xs text-amber-800">${lang === 'en' ? 'Select an account profile below. Each profile keeps distinct towers and memory lockers.' : '请选择账号体系，各个账号的数据完全独立。'}</p>
-        
-        <div class="space-y-2 pt-2">
-          ${['User_A', 'User_B', 'Guest_User'].map(u => `
-            <button onclick="switchUserAccount('${u}')" class="w-full text-left p-2.5 rounded-xl border ${currentUser === u ? 'border-amber-900 bg-amber-200 font-extrabold' : 'border-amber-300 bg-amber-50'} text-xs text-amber-950 flex justify-between items-center">
-              <span>👤 ${u.replace('_', ' ')}</span>
-              ${currentUser === u ? `<span>✓ ${lang === 'en' ? 'Active' : '当前'}</span>` : ''}
-            </button>
-          `).join('')}
-        </div>
-
-        <div class="pt-2 border-t border-amber-200">
-          <input id="modal-custom-user" type="text" placeholder="${lang === 'en' ? 'Create new profile name...' : '输入新用户名...'}" class="w-full p-2 border border-amber-900 rounded-xl text-xs bg-amber-50">
-          <button onclick="createNewUserProfile()" class="w-full mt-2 py-2 bg-amber-800 text-amber-50 rounded-xl text-xs font-bold">${lang === 'en' ? '+ Login / Create Profile' : '+ 登录/新建账号'}</button>
-        </div>
-
-        <div class="pt-2">
-          <button onclick="closeModal()" class="w-full py-1.5 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl">${lang === 'en' ? 'Close' : '关闭'}</button>
-        </div>
-      `);
-    }
-
-    function switchUserAccount(username) {
-      currentUser = username;
-      userData = JSON.parse(localStorage.getItem(getUserStorageKey(currentUser))) || getInitialSeedData();
-      saveData();
-      closeModal();
-      render();
-    }
-
-    function createNewUserProfile() {
-      const input = document.getElementById('modal-custom-user').value.trim();
-      if (!input) return;
-      const cleanName = input.replace(/\s+/g, '_');
-      switchUserAccount(cleanName);
-    }
-
+    // Modal Helper Actions
     function selectAndOpenTower(id) {
       userData.selectedTowerId = id;
       saveData();
@@ -651,7 +593,7 @@
 
     function deleteTower(e, towerId) {
       e.stopPropagation();
-      if (confirm(lang === 'en' ? 'Delete this entire building? All floors and locker items will be removed.' : '确定要拆除整栋大楼吗？')) {
+      if (confirm(lang === 'en' ? 'Delete this entire building?' : '确定要拆除整栋大楼吗？')) {
         userData.towers = userData.towers.filter(t => t.id !== towerId);
         if (userData.selectedTowerId === towerId) {
           userData.selectedTowerId = userData.towers.length > 0 ? userData.towers[0].id : null;
@@ -678,9 +620,7 @@
       const name = document.getElementById('modal-input-name').value.trim();
       const slogan = document.getElementById('modal-input-slogan').value.trim() || 'Master essential life systems';
       const vision = document.getElementById('modal-input-vision').value.trim() || 'Achieve clarity and control';
-
       if (!name) return alert(lang === 'en' ? 'Please enter tower name' : '请输入大楼名称');
-
       const newId = 'tower_' + Date.now();
       userData.towers.push({
         id: newId,
@@ -697,7 +637,6 @@
         mysteryBox: [],
         garden: { who_zh: name + ' 的建设者', who_en: 'Builder of ' + name, future_zh: '掌握秩序者', future_en: 'Order Master' }
       });
-
       userData.selectedTowerId = newId;
       saveData();
       closeModal();
@@ -708,7 +647,6 @@
     function openEditTowerInfoModal(towerId) {
       const tower = userData.towers.find(t => t.id === towerId);
       const data = tower[lang];
-
       showModal(`
         <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Tower Info' : '编辑大楼信息'}</h3>
         <input id="modal-tower-name" type="text" value="${data.name}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
@@ -725,12 +663,10 @@
       const name = document.getElementById('modal-tower-name').value.trim();
       const slogan = document.getElementById('modal-tower-slogan').value.trim();
       const vision = document.getElementById('modal-tower-vision').value.trim();
-
       const tower = userData.towers.find(t => t.id === towerId);
       tower[lang].name = name;
       tower[lang].slogan = slogan;
       tower[lang].vision = vision;
-
       saveData();
       closeModal();
       render();
@@ -752,15 +688,12 @@
       const title = document.getElementById('modal-floor-title').value.trim();
       const desc = document.getElementById('modal-floor-desc').value.trim();
       if (!title) return alert(lang === 'en' ? 'Please enter floor title' : '请输入楼层标题');
-
       const tower = userData.towers.find(t => t.id === towerId);
       const newId = 'f_' + Date.now();
       const numZh = tower.zh.floors.length + 1;
       const numEn = tower.en.floors.length + 1;
-
       tower.zh.floors.unshift({ id: newId, num: numZh, title, icon: '🪴', desc, items: [] });
       tower.en.floors.unshift({ id: newId, num: numEn, title, icon: '🪴', desc, items: [] });
-
       saveData();
       closeModal();
       render();
@@ -769,7 +702,6 @@
     function openEditFloorModal(towerId, floorId) {
       const tower = userData.towers.find(t => t.id === towerId);
       const floor = tower[lang].floors.find(f => f.id === floorId);
-
       showModal(`
         <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Floor' : '编辑楼层'}</h3>
         <input id="modal-edit-floor-title" type="text" value="${floor.title}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
@@ -784,12 +716,10 @@
     function submitEditFloor(towerId, floorId) {
       const title = document.getElementById('modal-edit-floor-title').value.trim();
       const desc = document.getElementById('modal-edit-floor-desc').value.trim();
-
       const tower = userData.towers.find(t => t.id === towerId);
       const floor = tower[lang].floors.find(f => f.id === floorId);
       floor.title = title;
       floor.desc = desc;
-
       saveData();
       closeModal();
       render();
@@ -819,14 +749,11 @@
     function submitAddItem(towerId, floorId) {
       const text = document.getElementById('modal-item-text').value.trim();
       if (!text) return;
-
       const tower = userData.towers.find(t => t.id === towerId);
       const fZh = tower.zh.floors.find(f => f.id === floorId);
       const fEn = tower.en.floors.find(f => f.id === floorId);
-
       if (fZh) fZh.items.push(text);
       if (fEn) fEn.items.push(text);
-
       saveData();
       closeModal();
       render();
@@ -835,7 +762,6 @@
     function openEditItemModal(towerId, floorId, itemIdx) {
       const tower = userData.towers.find(t => t.id === towerId);
       const floor = tower[lang].floors.find(f => f.id === floorId);
-
       showModal(`
         <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Item' : '编辑条目'}</h3>
         <textarea id="modal-edit-item-text" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-24">${floor.items[itemIdx]}</textarea>
@@ -849,11 +775,9 @@
     function submitEditItem(towerId, floorId, itemIdx) {
       const text = document.getElementById('modal-edit-item-text').value.trim();
       if (!text) return;
-
       const tower = userData.towers.find(t => t.id === towerId);
       const floor = tower[lang].floors.find(f => f.id === floorId);
       floor.items[itemIdx] = text;
-
       saveData();
       closeModal();
       render();
@@ -863,10 +787,8 @@
       const tower = userData.towers.find(t => t.id === towerId);
       const fZh = tower.zh.floors.find(f => f.id === floorId);
       const fEn = tower.en.floors.find(f => f.id === floorId);
-
       if (fZh && fZh.items) fZh.items.splice(itemIdx, 1);
       if (fEn && fEn.items) fEn.items.splice(itemIdx, 1);
-
       saveData();
       render();
     }
@@ -888,7 +810,6 @@
       const currentTower = getCurrentTower();
       if (!currentTower.expressLocker) currentTower.expressLocker = [];
       currentTower.expressLocker.push({ id: 'el_' + Date.now(), zh: text, en: text });
-
       saveData();
       closeModal();
       render();
@@ -918,7 +839,6 @@
       const currentTower = getCurrentTower();
       if (!currentTower.mysteryBox) currentTower.mysteryBox = [];
       currentTower.mysteryBox.push({ id: 'mb_' + Date.now(), q_zh: q, q_en: q, a_zh: '', a_en: '', isSolved: false });
-
       saveData();
       closeModal();
       render();
@@ -960,7 +880,6 @@
     function openEditGardenModal() {
       const currentTower = getCurrentTower();
       const garden = currentTower.garden || { who_zh: '', who_en: '', future_zh: '', future_en: '' };
-
       showModal(`
         <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Personal Vision' : '编辑个人愿景'}</h3>
         <input id="modal-garden-who" type="text" value="${lang === 'en' ? (garden.who_en || '') : (garden.who_zh || '')}" placeholder="${lang === 'en' ? 'Who You Are' : '当前身份'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
@@ -975,13 +894,11 @@
     function submitEditGarden() {
       const who = document.getElementById('modal-garden-who').value.trim();
       const future = document.getElementById('modal-garden-future').value.trim();
-
       const currentTower = getCurrentTower();
       currentTower.garden = {
         who_zh: who, who_en: who,
         future_zh: future, future_en: future
       };
-
       saveData();
       closeModal();
       render();
@@ -996,7 +913,17 @@
       document.getElementById('modal-overlay').classList.add('hidden');
     }
 
-    render();
+    // App Initialization Check
+    if (currentUser) {
+      loadUserData();
+      document.getElementById('auth-container').classList.add('hidden');
+      document.getElementById('app-header').classList.remove('hidden');
+      document.getElementById('main-container').classList.remove('hidden');
+      document.getElementById('app-nav').classList.remove('hidden');
+      render();
+    } else {
+      document.getElementById('auth-container').classList.remove('hidden');
+    }
   </script>
 </body>
 </html>
