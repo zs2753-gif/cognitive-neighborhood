@@ -29,8 +29,8 @@
   </style>
 </head>
 <body class="text-amber-950 pb-28 min-h-screen">
-  <!-- Header with Language Switcher & Logout (NO USER SWITCHER) -->
-  <header id="app-header" class="sticky top-0 z-40 bg-[#f4efe6]/90 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-3 flex justify-between items-center hidden">
+  <!-- Header with Language Switcher & Auth State (NO USER SWITCHER DROP-DOWN) -->
+  <header id="app-header" class="sticky top-0 z-40 bg-[#f4efe6]/90 backdrop-blur-md border-b-2 border-amber-900/20 px-4 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('towers')">
       <span class="text-2xl">🏡</span>
       <div>
@@ -40,12 +40,9 @@
     </div>
     
     <div class="flex items-center space-x-2">
-      <!-- Current User Badge + Logout Button -->
-      <div class="flex items-center bg-amber-100 border border-amber-400/80 rounded-xl px-2.5 py-1 space-x-1.5 text-xs font-bold text-amber-900">
-        <span>👤 <span id="current-user-display">User</span></span>
-        <button onclick="logout()" class="text-[10px] text-rose-700 hover:text-rose-900 font-extrabold bg-rose-100 hover:bg-rose-200 px-1.5 py-0.5 rounded transition">
-          退出
-        </button>
+      <!-- Auth Status Badge / Action Button -->
+      <div id="auth-header-btn">
+        <!-- Injected Dynamically -->
       </div>
       
       <!-- Language Toggle -->
@@ -55,45 +52,47 @@
     </div>
   </header>
 
-  <!-- Login / Authentication Gate View -->
-  <div id="auth-container" class="max-w-md mx-auto p-6 min-h-screen flex flex-col justify-center items-center">
-    <div class="w-full floor-section p-6 rounded-3xl space-y-5 bg-[#fefcf8]">
-      <div class="text-center space-y-1">
-        <span class="text-4xl">🏡</span>
-        <h2 class="text-2xl font-black text-amber-950">Cognitive District</h2>
-        <p class="text-xs text-amber-800 font-bold">独立认知小区登录门禁</p>
+  <!-- Auth Gateway Modal / Overlay -->
+  <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-sm floor-section p-6 rounded-3xl space-y-4 bg-[#fefcf8]">
+      <div class="flex justify-between items-center border-b border-amber-900/10 pb-2">
+        <h2 class="text-lg font-black text-amber-950">🔑 登录 / 注册</h2>
+        <button onclick="closeAuthModal()" class="text-amber-800 font-bold text-sm">✕</button>
       </div>
       
-      <div class="space-y-3 pt-2">
+      <p class="text-xs text-amber-900 font-bold leading-relaxed">
+        您正在尝试编辑或自定义大楼。请登录或创建账号，以便保存您个人专属的数据。
+      </p>
+      
+      <div class="space-y-3 pt-1">
         <div>
           <label class="text-xs font-black text-amber-900 block mb-1">账号/用户名</label>
-          <input id="auth-username" type="text" placeholder="输入您的独立账号..." class="w-full p-3 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
+          <input id="auth-username" type="text" placeholder="输入您的用户名..." class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
         </div>
         <div>
           <label class="text-xs font-black text-amber-900 block mb-1">密码</label>
-          <input id="auth-password" type="password" placeholder="输入密码..." class="w-full p-3 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
+          <input id="auth-password" type="password" placeholder="输入密码..." class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
         </div>
       </div>
 
       <div class="space-y-2 pt-2">
-        <button onclick="handleLogin()" class="w-full py-3 bg-amber-800 text-amber-50 rounded-2xl text-xs font-black shadow-md hover:bg-amber-900 transition">
-          进入我的专属空间
+        <button onclick="handleLogin()" class="w-full py-2.5 bg-amber-800 text-amber-50 rounded-xl text-xs font-black shadow-md hover:bg-amber-900 transition">
+          登录 / 存入我的专属空间
+        </button>
+        <button onclick="closeAuthModal()" class="w-full py-2 text-xs font-bold text-amber-800 border border-amber-300 rounded-xl">
+          暂不登录（继续浏览）
         </button>
       </div>
-      
-      <p class="text-[11px] text-amber-800/70 text-center leading-relaxed border-t border-amber-200 pt-3">
-        🔒 账号之间完全隔离隔断。登录后仅能访问与您账号绑定的数据，其他用户无法查看或切换。
-      </p>
     </div>
   </div>
 
   <!-- Main View Container -->
-  <main class="max-w-md mx-auto p-4 hidden" id="main-container">
+  <main class="max-w-md mx-auto p-4" id="main-container">
     <!-- Rendered dynamically via JS -->
   </main>
 
   <!-- Bottom Navigation -->
-  <nav id="app-nav" class="fixed bottom-0 left-0 right-0 bg-[#fefcf8] border-t-2 border-amber-900 py-2 px-3 flex justify-around items-center z-40 max-w-md mx-auto shadow-2xl hidden">
+  <nav id="app-nav" class="fixed bottom-0 left-0 right-0 bg-[#fefcf8] border-t-2 border-amber-900 py-2 px-3 flex justify-around items-center z-40 max-w-md mx-auto shadow-2xl">
     <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-bold text-amber-800" id="nav-towers">
       <span class="text-xl">🏢</span><span class="nav-label" id="lbl-towers">Towers</span>
     </button>
@@ -111,7 +110,7 @@
     </button>
   </nav>
 
-  <!-- Modal Backdrop -->
+  <!-- General Modal Backdrop -->
   <div id="modal-overlay" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="bg-[#fefcf8] border-3 border-amber-900 rounded-2xl p-5 w-full max-w-sm shadow-2xl space-y-4" id="modal-content">
       <!-- Injected dynamically -->
@@ -123,10 +122,10 @@
     let lang = localStorage.getItem('cd_app_lang') || 'en';
     let currentTab = 'towers';
     
-    // Auth Session
+    // Auth Session (Null means Guest / Public preview mode)
     let currentUser = localStorage.getItem('cd_app_active_session_user') || null;
 
-    // Default initial seed dataset
+    // Full Initial Seed Dataset (Includes BOTH Intl Student & Health Towers)
     const getInitialSeedData = () => ({
       selectedTowerId: 'intl_student',
       towers: [
@@ -186,7 +185,7 @@
                   '🎯 Target: Unprocessed raw food exempt; household items & snacks taxable',
                   '👕 Clothing Tax: Clothing below specific dollar limit exempt, tiered rates above',
                   '🍎 Appletree Market: Fresh baked giant cookies & Sandwich Hero taxable; raw groceries exempt',
-                  '🛍️ Trader Joe\'s: Sales tax calculated at checkout for prepared food & non-food items'
+                  '🛍️️ Trader Joe\'s: Sales tax calculated at checkout for prepared food & non-food items'
                 ]
               },
               {
@@ -220,33 +219,153 @@
             future_zh: '精明自律、对各项隐性开销了如指掌的生活达人',
             future_en: 'A savvy, financially conscious global citizen'
           }
+        },
+        {
+          id: 'health_tower',
+          icon: '🏋️‍♂️',
+          zh: {
+            name: '健康管理大楼',
+            slogan: '科学健身与营养膳食，打造精力充沛的强健体魄。',
+            vision: '建立可持续的运动与饮食习惯，保持充沛精力。',
+            floors: [
+              {
+                id: 'ht_f3',
+                num: 3,
+                title: '高效恢复与睡眠调控',
+                icon: '🌙',
+                desc: '重视肌肉修复与精力恢复，建立良好作息。',
+                items: [
+                  '😴 确保每天 7-8 小时高质量深度睡眠',
+                  '🧘 高强度训练后进行 15 分钟静态拉伸与筋膜枪放松',
+                  '📱 睡前 1 小时减少蓝光设备使用，促进褪黑素分泌'
+                ]
+              },
+              {
+                id: 'ht_f2',
+                num: 2,
+                title: '科学力量训练与有氧配合',
+                icon: '💪',
+                desc: '推拉腿循环训练，兼顾心肺能力提升。',
+                items: [
+                  '🏋️每周 3-4 次力量训练（复合动作为主：深蹲、硬拉、卧推）',
+                  '🏃 每周 2 次低强度有氧（LISS），心率控制在 120-140 bpm',
+                  '📝 记录每次训练重量与组数，坚持渐进式负荷原则'
+                ]
+              },
+              {
+                id: 'ht_f1',
+                num: 1,
+                title: '精准营养与水分摄入地基',
+                icon: '🥗',
+                desc: '掌控三大营养素比例，打好健康底层。',
+                items: [
+                  '🥩 每公斤体重摄入 1.6 - 2.0g 优质蛋白质（鸡胸肉、牛肉、蛋类）',
+                  '💧 每日饮水保持在 2500ml - 3000ml',
+                  '🥦 每餐必须有 1-2 拳高纤维蔬菜，严格控制超加工食品摄入'
+                ]
+              }
+            ]
+          },
+          en: {
+            name: 'Health & Fitness Tower',
+            slogan: 'Scientific training and precise nutrition for high energy.',
+            vision: 'Build sustainable physical strength and clean eating habits.',
+            floors: [
+              {
+                id: 'ht_f3',
+                num: 3,
+                title: 'Recovery & Sleep Optimization',
+                icon: '🌙',
+                desc: 'Focus on muscle repair, relaxation, and circadian rhythm.',
+                items: [
+                  '😴 Secure 7-8 hours of quality deep sleep daily',
+                  '🧘 15-min static stretching and foam rolling post-workout',
+                  '📱 Cut screen time 1 hour before sleep for melatonin boost'
+                ]
+              },
+              {
+                id: 'ht_f2',
+                num: 2,
+                title: 'Strength Training & Cardio',
+                icon: '💪',
+                desc: 'Structured push-pull-legs splits paired with cardiovascular health.',
+                items: [
+                  '🏋️ 3-4 Strength workouts per week (Squat, Deadlift, Bench)',
+                  '🏃 2 Low-intensity cardio sessions maintaining 120-140 bpm',
+                  '📝 Progressive overload: Track weights and reps every session'
+                ]
+              },
+              {
+                id: 'ht_f1',
+                num: 1,
+                title: 'Nutrition Base & Hydration',
+                icon: '🥗',
+                desc: 'Manage macronutrients and hydration balance.',
+                items: [
+                  '🥩 Consume 1.6-2.0g protein per kg bodyweight daily',
+                  '💧 Drink 2.5L to 3.0L water daily',
+                  '🥦 Include high-fiber vegetables with every meal, avoid ultra-processed foods'
+                ]
+              }
+            ]
+          },
+          expressLocker: [
+            { id: 'ht_el_1', zh: '训练前 30 分钟补充黑咖啡或碳水', en: 'Pre-workout: Black coffee/carb 30 mins prior' },
+            { id: 'ht_el_2', zh: '蛋白粉冲服温度切勿过高', en: 'Whey Protein: Avoid hot water to prevent clumping' }
+          ],
+          mysteryBox: [
+            { id: 'ht_mb_1', q_zh: '减脂期晚上饿了可以吃什么？', q_en: 'What can I eat when hungry late at night?', a_zh: '可以吃少许无糖脱脂黄瓜、蛋白霜或黄豆/水煮蛋白，避免高糖高碳水。', a_en: 'Egg whites, cucumber, or a scoop of casein protein with low carbs.', isSolved: true }
+          ],
+          garden: {
+            who_zh: '追求身心健康与强健体魄的自律者',
+            who_en: 'Fitness enthusiast building a strong body',
+            future_zh: '体脂率稳定、精力充沛、掌控身体节奏的健康达人',
+            future_en: 'High-energy, physically fit individual in total control'
+          }
         }
       ]
     });
 
-    // Isolated Storage Key per user
-    function getUserStorageKey(username) {
-      return `cd_app_isolated_data_${username}`;
-    }
-
     let userData = null;
 
     function loadUserData() {
-      if (!currentUser) return;
-      const key = getUserStorageKey(currentUser);
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        userData = JSON.parse(raw);
+      if (currentUser) {
+        const key = `cd_app_isolated_data_${currentUser}`;
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          userData = JSON.parse(raw);
+        } else {
+          userData = getInitialSeedData();
+          saveData();
+        }
       } else {
+        // Guest mode: load initial default seed data directly
         userData = getInitialSeedData();
-        saveData();
       }
     }
 
     function saveData() {
-      if (!currentUser || !userData) return;
-      localStorage.setItem(getUserStorageKey(currentUser), JSON.stringify(userData));
+      if (currentUser && userData) {
+        localStorage.setItem(`cd_app_isolated_data_${currentUser}`, JSON.stringify(userData));
+      }
       localStorage.setItem('cd_app_lang', lang);
+    }
+
+    // Require Auth Check for Write Actions
+    function requireAuth(actionCallback) {
+      if (!currentUser) {
+        openAuthModal();
+      } else {
+        actionCallback();
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById('auth-modal').classList.remove('hidden');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
     }
 
     // Auth Handlers
@@ -258,27 +377,15 @@
       currentUser = cleanUser;
       localStorage.setItem('cd_app_active_session_user', currentUser);
       loadUserData();
-      
-      document.getElementById('auth-container').classList.add('hidden');
-      document.getElementById('app-header').classList.remove('hidden');
-      document.getElementById('main-container').classList.remove('hidden');
-      document.getElementById('app-nav').classList.remove('hidden');
-      
-      currentTab = 'towers';
+      closeAuthModal();
       render();
     }
 
     function logout() {
       currentUser = null;
-      userData = null;
       localStorage.removeItem('cd_app_active_session_user');
-      
-      document.getElementById('app-header').classList.add('hidden');
-      document.getElementById('main-container').classList.add('hidden');
-      document.getElementById('app-nav').classList.add('hidden');
-      document.getElementById('auth-container').classList.remove('hidden');
-      document.getElementById('auth-username').value = '';
-      document.getElementById('auth-password').value = '';
+      loadUserData();
+      render();
     }
 
     function toggleLanguage() {
@@ -317,12 +424,28 @@
     }
 
     function render() {
-      if (!currentUser || !userData) return;
+      if (!userData) loadUserData();
 
-      // Dynamic Header Info
-      document.getElementById('current-user-display').innerText = currentUser.replace('_', ' ');
+      // Render Header Auth Button
+      const authHeaderBtn = document.getElementById('auth-header-btn');
+      if (currentUser) {
+        authHeaderBtn.innerHTML = `
+          <div class="flex items-center bg-amber-100 border border-amber-400/80 rounded-xl px-2.5 py-1 space-x-1.5 text-xs font-bold text-amber-900">
+            <span>👤 ${currentUser.replace('_', ' ')}</span>
+            <button onclick="logout()" class="text-[10px] text-rose-700 hover:text-rose-900 font-extrabold bg-rose-100 px-1.5 py-0.5 rounded">
+              退出
+            </button>
+          </div>
+        `;
+      } else {
+        authHeaderBtn.innerHTML = `
+          <button onclick="openAuthModal()" class="px-2.5 py-1 text-xs font-bold rounded-xl bg-amber-200 text-amber-950 border border-amber-400 hover:bg-amber-300 transition">
+            🔑 登录 / 注册
+          </button>
+        `;
+      }
 
-      // Dynamic Labels based on selected language
+      // Dynamic Labels
       document.getElementById('lbl-towers').innerText = lang === 'en' ? 'Towers' : '大楼';
       document.getElementById('lbl-locker').innerText = lang === 'en' ? 'Locker' : '快递柜';
       document.getElementById('lbl-mystery').innerText = lang === 'en' ? 'Mystery' : '问答箱';
@@ -346,7 +469,7 @@
           <div class="space-y-4">
             <div class="flex justify-between items-center">
               <h2 class="text-xs font-black text-amber-900/60 uppercase tracking-widest">
-                ${lang === 'en' ? 'My Towers (Select to Enter)' : '我的建筑群 (点击选择/进入)'}
+                ${lang === 'en' ? 'My Towers (Select to View)' : '大楼建筑群 (点击选择/进入)'}
               </h2>
             </div>
             ${userData.towers.map(t => {
@@ -361,7 +484,7 @@
                         <h3 class="font-black text-amber-950 text-base flex items-center gap-1.5">
                           ${data.name}${isSelected ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-800 text-amber-100">${lang === 'en' ? 'Active' : '当前'}</span>` : ''}
                         </h3>
-                        <p class="text-xs text-amber-800/70 mt-0.5">${data.floors.length}${lang === 'en' ? 'Floors' : '层剖面结构'}</p>
+                        <p class="text-xs text-amber-800/70 mt-0.5">${data.floors.length}${lang === 'en' ? 'Floors' : '层结构'}</p>
                       </div>
                     </div>
                     
@@ -384,7 +507,7 @@
           </div>
         `;
       } 
-      // ---------------- TAB 1.5: TOWER DETAIL VIEW (FULL CRUD) ----------------
+      // ---------------- TAB 1.5: TOWER DETAIL VIEW ----------------
       else if (currentTab === 'tower_detail') {
         if (!currentTower) { switchTab('towers'); return; }
         const data = currentTower[lang];
@@ -462,7 +585,7 @@
           </div>
         `;
       } 
-      // ---------------- TAB 2: EXPRESS LOCKER (TOWER-SCOPED) ----------------
+      // ---------------- TAB 2: EXPRESS LOCKER ----------------
       else if (currentTab === 'locker') {
         if (!currentTower) { switchTab('towers'); return; }
         const lockerItems = currentTower.expressLocker || [];
@@ -488,7 +611,7 @@
           </div>
         `;
       } 
-      // ---------------- TAB 3: MYSTERY BOX (TOWER-SCOPED) ----------------
+      // ---------------- TAB 3: MYSTERY BOX ----------------
       else if (currentTab === 'mystery') {
         if (!currentTower) { switchTab('towers'); return; }
         const mysteryItems = currentTower.mysteryBox || [];
@@ -523,7 +646,7 @@
           </div>
         `;
       } 
-      // ---------------- TAB 4: PERSONAL GARDEN (TOWER-SCOPED) ----------------
+      // ---------------- TAB 4: PERSONAL GARDEN ----------------
       else if (currentTab === 'garden') {
         if (!currentTower) { switchTab('towers'); return; }
         const garden = currentTower.garden || { who_zh: 'None', who_en: 'None', future_zh: 'None', future_en: 'None' };
@@ -541,7 +664,7 @@
             <div class="bg-gradient-to-br from-amber-800 to-amber-950 p-6 rounded-3xl text-amber-50 space-y-5 shadow-2xl">
               <div>
                 <span class="text-xs font-black opacity-75 uppercase tracking-wider">${lang === 'en' ? 'Who You Are' : '当前身份定位'}</span>
-                <p class="font-extrabold text-base mt-1">${lang === 'en' ? garden.future_en : garden.who_zh}</p>
+                <p class="font-extrabold text-base mt-1">${lang === 'en' ? garden.who_en : garden.who_zh}</p>
               </div>
               <div class="border-t border-amber-700/50 pt-4">
                 <span class="text-xs font-black opacity-75 uppercase tracking-wider">${lang === 'en' ? 'Future Goal' : '未来期望目标'}</span>
@@ -575,8 +698,10 @@
             </div>
             
             <div class="bg-amber-100 p-4 rounded-2xl border border-amber-900/20 text-xs text-amber-900 space-y-1 text-center">
-              <p class="font-bold">🛡️ 独立空间安全防护已激活</p>
-              <p class="opacity-80">当前账号 ( ${currentUser} ) 的所有规则与卡片均已安全隔离存储。</p>
+              <p class="font-bold">${currentUser ? '🛡️ 专属账号模式 (已登录)' : '👀 游客预览模式'}</p>
+              <p class="opacity-80">
+                ${currentUser ? `当前正在编辑 ${currentUser} 的专属规则空间。` : '当前处于浏览模式，如需编辑大楼或添加内容，请随时点击登录/注册。'}
+              </p>
             </div>
           </div>
         `;
@@ -593,27 +718,31 @@
 
     function deleteTower(e, towerId) {
       e.stopPropagation();
-      if (confirm(lang === 'en' ? 'Delete this entire building?' : '确定要拆除整栋大楼吗？')) {
-        userData.towers = userData.towers.filter(t => t.id !== towerId);
-        if (userData.selectedTowerId === towerId) {
-          userData.selectedTowerId = userData.towers.length > 0 ? userData.towers[0].id : null;
+      requireAuth(() => {
+        if (confirm(lang === 'en' ? 'Delete this entire building?' : '确定要拆除整栋大楼吗？')) {
+          userData.towers = userData.towers.filter(t => t.id !== towerId);
+          if (userData.selectedTowerId === towerId) {
+            userData.selectedTowerId = userData.towers.length > 0 ? userData.towers[0].id : null;
+          }
+          saveData();
+          render();
         }
-        saveData();
-        render();
-      }
+      });
     }
 
     function openNewTowerModal() {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Design New Tower' : '设计新大楼'}</h3>
-        <input id="modal-input-name" type="text" placeholder="${lang === 'en' ? 'Tower Name' : '大楼名称'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <input id="modal-input-slogan" type="text" placeholder="${lang === 'en' ? 'Core Slogan' : '核心标语'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <input id="modal-input-vision" type="text" placeholder="${lang === 'en' ? 'Ultimate Vision' : '终极愿景'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitNewTower()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Create' : '确认创建'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Design New Tower' : '设计新大楼'}</h3>
+          <input id="modal-input-name" type="text" placeholder="${lang === 'en' ? 'Tower Name' : '大楼名称'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <input id="modal-input-slogan" type="text" placeholder="${lang === 'en' ? 'Core Slogan' : '核心标语'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <input id="modal-input-vision" type="text" placeholder="${lang === 'en' ? 'Ultimate Vision' : '终极愿景'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitNewTower()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Create' : '确认创建'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitNewTower() {
@@ -645,18 +774,20 @@
     }
 
     function openEditTowerInfoModal(towerId) {
-      const tower = userData.towers.find(t => t.id === towerId);
-      const data = tower[lang];
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Tower Info' : '编辑大楼信息'}</h3>
-        <input id="modal-tower-name" type="text" value="${data.name}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <input id="modal-tower-slogan" type="text" value="${data.slogan}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <input id="modal-tower-vision" type="text" value="${data.vision}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitEditTowerInfo('${towerId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        const tower = userData.towers.find(t => t.id === towerId);
+        const data = tower[lang];
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Tower Info' : '编辑大楼信息'}</h3>
+          <input id="modal-tower-name" type="text" value="${data.name}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <input id="modal-tower-slogan" type="text" value="${data.slogan}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <input id="modal-tower-vision" type="text" value="${data.vision}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitEditTowerInfo('${towerId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitEditTowerInfo(towerId) {
@@ -673,15 +804,17 @@
     }
 
     function openAddFloorModal(towerId) {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Add New Floor' : '加盖新楼层'}</h3>
-        <input id="modal-floor-title" type="text" placeholder="${lang === 'en' ? 'Floor Title' : '楼层标题'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <textarea id="modal-floor-desc" placeholder="${lang === 'en' ? 'Floor Description' : '楼层描述'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-20"></textarea>
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitAddFloor('${towerId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Build Floor' : '加盖'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Add New Floor' : '加盖新楼层'}</h3>
+          <input id="modal-floor-title" type="text" placeholder="${lang === 'en' ? 'Floor Title' : '楼层标题'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <textarea id="modal-floor-desc" placeholder="${lang === 'en' ? 'Floor Description' : '楼层描述'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-20"></textarea>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitAddFloor('${towerId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Build Floor' : '加盖'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitAddFloor(towerId) {
@@ -700,17 +833,19 @@
     }
 
     function openEditFloorModal(towerId, floorId) {
-      const tower = userData.towers.find(t => t.id === towerId);
-      const floor = tower[lang].floors.find(f => f.id === floorId);
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Floor' : '编辑楼层'}</h3>
-        <input id="modal-edit-floor-title" type="text" value="${floor.title}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <textarea id="modal-edit-floor-desc" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-20">${floor.desc || ''}</textarea>
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitEditFloor('${towerId}', '${floorId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        const tower = userData.towers.find(t => t.id === towerId);
+        const floor = tower[lang].floors.find(f => f.id === floorId);
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Floor' : '编辑楼层'}</h3>
+          <input id="modal-edit-floor-title" type="text" value="${floor.title}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <textarea id="modal-edit-floor-desc" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-20">${floor.desc || ''}</textarea>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitEditFloor('${towerId}', '${floorId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitEditFloor(towerId, floorId) {
@@ -726,24 +861,28 @@
     }
 
     function deleteFloor(towerId, floorId) {
-      if (confirm(lang === 'en' ? 'Delete this floor?' : '确定删除此楼层吗？')) {
-        const tower = userData.towers.find(t => t.id === towerId);
-        tower.zh.floors = tower.zh.floors.filter(f => f.id !== floorId);
-        tower.en.floors = tower.en.floors.filter(f => f.id !== floorId);
-        saveData();
-        render();
-      }
+      requireAuth(() => {
+        if (confirm(lang === 'en' ? 'Delete this floor?' : '确定删除此楼层吗？')) {
+          const tower = userData.towers.find(t => t.id === towerId);
+          tower.zh.floors = tower.zh.floors.filter(f => f.id !== floorId);
+          tower.en.floors = tower.en.floors.filter(f => f.id !== floorId);
+          saveData();
+          render();
+        }
+      });
     }
 
     function openAddItemModal(towerId, floorId) {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Add Rule Item' : '新增贴砖条目'}</h3>
-        <textarea id="modal-item-text" placeholder="${lang === 'en' ? 'Rule or checklist item text...' : '输入规则/细则...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-24"></textarea>
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitAddItem('${towerId}', '${floorId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Add Item' : '新增'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Add Rule Item' : '新增贴砖条目'}</h3>
+          <textarea id="modal-item-text" placeholder="${lang === 'en' ? 'Rule or checklist item text...' : '输入规则/细则...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-24"></textarea>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitAddItem('${towerId}', '${floorId}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Add Item' : '新增'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitAddItem(towerId, floorId) {
@@ -760,16 +899,18 @@
     }
 
     function openEditItemModal(towerId, floorId, itemIdx) {
-      const tower = userData.towers.find(t => t.id === towerId);
-      const floor = tower[lang].floors.find(f => f.id === floorId);
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Item' : '编辑条目'}</h3>
-        <textarea id="modal-edit-item-text" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-24">${floor.items[itemIdx]}</textarea>
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitEditItem('${towerId}', '${floorId}', ${itemIdx})" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        const tower = userData.towers.find(t => t.id === towerId);
+        const floor = tower[lang].floors.find(f => f.id === floorId);
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Item' : '编辑条目'}</h3>
+          <textarea id="modal-edit-item-text" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-24">${floor.items[itemIdx]}</textarea>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitEditItem('${towerId}', '${floorId}', ${itemIdx})" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitEditItem(towerId, floorId, itemIdx) {
@@ -784,24 +925,28 @@
     }
 
     function deleteItem(towerId, floorId, itemIdx) {
-      const tower = userData.towers.find(t => t.id === towerId);
-      const fZh = tower.zh.floors.find(f => f.id === floorId);
-      const fEn = tower.en.floors.find(f => f.id === floorId);
-      if (fZh && fZh.items) fZh.items.splice(itemIdx, 1);
-      if (fEn && fEn.items) fEn.items.splice(itemIdx, 1);
-      saveData();
-      render();
+      requireAuth(() => {
+        const tower = userData.towers.find(t => t.id === towerId);
+        const fZh = tower.zh.floors.find(f => f.id === floorId);
+        const fEn = tower.en.floors.find(f => f.id === floorId);
+        if (fZh && fZh.items) fZh.items.splice(itemIdx, 1);
+        if (fEn && fEn.items) fEn.items.splice(itemIdx, 1);
+        saveData();
+        render();
+      });
     }
 
     function openAddLockerModal() {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Deposit Memo / Parcel' : '存入包裹/闪念卡'}</h3>
-        <input id="modal-locker-input" type="text" placeholder="${lang === 'en' ? 'Note text...' : '输入备忘事项...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitAddLocker()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Deposit' : '存入'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Deposit Memo / Parcel' : '存入包裹/闪念卡'}</h3>
+          <input id="modal-locker-input" type="text" placeholder="${lang === 'en' ? 'Note text...' : '输入备忘事项...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitAddLocker()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Deposit' : '存入'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitAddLocker() {
@@ -816,21 +961,25 @@
     }
 
     function deleteLockerItem(id) {
-      const currentTower = getCurrentTower();
-      currentTower.expressLocker = currentTower.expressLocker.filter(i => i.id !== id);
-      saveData();
-      render();
+      requireAuth(() => {
+        const currentTower = getCurrentTower();
+        currentTower.expressLocker = currentTower.expressLocker.filter(i => i.id !== id);
+        saveData();
+        render();
+      });
     }
 
     function openAddMysteryModal() {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Ask Mystery Question' : '提出本大楼新疑问'}</h3>
-        <input id="modal-mystery-q" type="text" placeholder="${lang === 'en' ? 'Question text...' : '输入问题...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitAddMystery()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Submit' : '提交'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Ask Mystery Question' : '提出本大楼新疑问'}</h3>
+          <input id="modal-mystery-q" type="text" placeholder="${lang === 'en' ? 'Question text...' : '输入问题...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitAddMystery()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Submit' : '提交'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitAddMystery() {
@@ -845,14 +994,16 @@
     }
 
     function openSolveMysteryModal(id) {
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Solve Question' : '解答疑问'}</h3>
-        <textarea id="modal-mystery-a" placeholder="${lang === 'en' ? 'Answer text...' : '输入解答心得...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-20"></textarea>
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitSolveMystery('${id}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Solve' : '保存解答'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Solve Question' : '解答疑问'}</h3>
+          <textarea id="modal-mystery-a" placeholder="${lang === 'en' ? 'Answer text...' : '输入解答心得...'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50 h-20"></textarea>
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitSolveMystery('${id}')" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Solve' : '保存解答'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitSolveMystery(id) {
@@ -871,24 +1022,28 @@
     }
 
     function deleteMysteryBox(id) {
-      const currentTower = getCurrentTower();
-      currentTower.mysteryBox = currentTower.mysteryBox.filter(m => m.id !== id);
-      saveData();
-      render();
+      requireAuth(() => {
+        const currentTower = getCurrentTower();
+        currentTower.mysteryBox = currentTower.mysteryBox.filter(m => m.id !== id);
+        saveData();
+        render();
+      });
     }
 
     function openEditGardenModal() {
-      const currentTower = getCurrentTower();
-      const garden = currentTower.garden || { who_zh: '', who_en: '', future_zh: '', future_en: '' };
-      showModal(`
-        <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Personal Vision' : '编辑个人愿景'}</h3>
-        <input id="modal-garden-who" type="text" value="${lang === 'en' ? (garden.who_en || '') : (garden.who_zh || '')}" placeholder="${lang === 'en' ? 'Who You Are' : '当前身份'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <input id="modal-garden-future" type="text" value="${lang === 'en' ? (garden.future_en || '') : (garden.future_zh || '')}" placeholder="${lang === 'en' ? 'Future Self Goal' : '未来的我'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
-        <div class="flex space-x-2 pt-2">
-          <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
-          <button onclick="submitEditGarden()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
-        </div>
-      `);
+      requireAuth(() => {
+        const currentTower = getCurrentTower();
+        const garden = currentTower.garden || { who_zh: '', who_en: '', future_zh: '', future_en: '' };
+        showModal(`
+          <h3 class="font-black text-amber-950 text-base">${lang === 'en' ? 'Edit Personal Vision' : '编辑个人愿景'}</h3>
+          <input id="modal-garden-who" type="text" value="${lang === 'en' ? (garden.who_en || '') : (garden.who_zh || '')}" placeholder="${lang === 'en' ? 'Who You Are' : '当前身份'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <input id="modal-garden-future" type="text" value="${lang === 'en' ? (garden.future_en || '') : (garden.future_zh || '')}" placeholder="${lang === 'en' ? 'Future Self Goal' : '未来的我'}" class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50">
+          <div class="flex space-x-2 pt-2">
+            <button onclick="closeModal()" class="flex-1 py-2 text-xs font-bold bg-amber-200 text-amber-900 rounded-xl border border-amber-400">${lang === 'en' ? 'Cancel' : '取消'}</button>
+            <button onclick="submitEditGarden()" class="flex-1 py-2 text-xs font-bold bg-amber-800 text-amber-50 rounded-xl">${lang === 'en' ? 'Save' : '保存'}</button>
+          </div>
+        `);
+      });
     }
 
     function submitEditGarden() {
@@ -913,17 +1068,9 @@
       document.getElementById('modal-overlay').classList.add('hidden');
     }
 
-    // App Initialization Check
-    if (currentUser) {
-      loadUserData();
-      document.getElementById('auth-container').classList.add('hidden');
-      document.getElementById('app-header').classList.remove('hidden');
-      document.getElementById('main-container').classList.remove('hidden');
-      document.getElementById('app-nav').classList.remove('hidden');
-      render();
-    } else {
-      document.getElementById('auth-container').classList.remove('hidden');
-    }
+    // Initialize App
+    loadUserData();
+    render();
   </script>
 </body>
 </html>
