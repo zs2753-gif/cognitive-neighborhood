@@ -55,30 +55,30 @@
   <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
     <div class="w-full max-w-sm floor-section p-6 rounded-3xl space-y-4 bg-[#fefcf8]">
       <div class="flex justify-between items-center border-b border-amber-900/10 pb-2">
-        <h2 class="text-lg font-black text-amber-950">🔑 登录 / 注册</h2>
+        <h2 id="auth-modal-title" class="text-lg font-black text-amber-950">🔑 登录 / 注册</h2>
         <button onclick="closeAuthModal()" class="text-amber-800 font-bold text-sm">✕</button>
       </div>
       
-      <p class="text-xs text-amber-900 font-bold leading-relaxed">
+      <p id="auth-modal-desc" class="text-xs text-amber-900 font-bold leading-relaxed">
         您正在尝试编辑或自定义大楼。请登录或创建账号，以便同步您的语言设置及专属数据。
       </p>
       
       <div class="space-y-3 pt-1">
         <div>
-          <label class="text-xs font-black text-amber-900 block mb-1">账号/用户名</label>
+          <label id="lbl-auth-username" class="text-xs font-black text-amber-900 block mb-1">账号/用户名</label>
           <input id="auth-username" type="text" placeholder="输入您的用户名..." class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
         </div>
         <div>
-          <label class="text-xs font-black text-amber-900 block mb-1">密码</label>
+          <label id="lbl-auth-password" class="text-xs font-black text-amber-900 block mb-1">密码</label>
           <input id="auth-password" type="password" placeholder="输入密码..." class="w-full p-2.5 border-2 border-amber-900 rounded-xl text-xs font-bold bg-amber-50/50 focus:outline-none focus:ring-2 focus:ring-amber-700">
         </div>
       </div>
 
       <div class="space-y-2 pt-2">
-        <button onclick="handleLogin()" class="w-full py-2.5 bg-amber-800 text-amber-50 rounded-xl text-xs font-black shadow-md hover:bg-amber-900 transition">
+        <button id="btn-auth-submit" onclick="handleLogin()" class="w-full py-2.5 bg-amber-800 text-amber-50 rounded-xl text-xs font-black shadow-md hover:bg-amber-900 transition">
           登录 / 存入我的专属空间
         </button>
-        <button onclick="closeAuthModal()" class="w-full py-2 text-xs font-bold text-amber-800 border border-amber-300 rounded-xl">
+        <button id="btn-auth-cancel" onclick="closeAuthModal()" class="w-full py-2 text-xs font-bold text-amber-800 border border-amber-300 rounded-xl">
           暂不登录（继续浏览）
         </button>
       </div>
@@ -220,7 +220,7 @@
         },
         {
           id: 'health_tower',
-          icon: '🏋️️‍♂️',
+          icon: '🏋‍♂️',
           zh: {
             name: '健康管理大楼',
             slogan: '科学健身与营养膳食，打造精力充沛的强健体魄。',
@@ -364,6 +364,22 @@
     }
 
     function openAuthModal() {
+      // 动态更新登录弹窗中的所有文案
+      const isEn = (lang === 'en');
+      document.getElementById('auth-modal-title').innerText = isEn ? '🔑 Login / Register' : '🔑 登录 / 注册';
+      document.getElementById('auth-modal-desc').innerText = isEn 
+        ? 'Please login or create an account to customize towers and sync your language preferences.' 
+        : '您正在尝试编辑或自定义大楼。请登录或创建账号，以便同步您的语言设置及专属数据。';
+      
+      document.getElementById('lbl-auth-username').innerText = isEn ? 'Username' : '账号/用户名';
+      document.getElementById('auth-username').placeholder = isEn ? 'Enter username...' : '输入您的用户名...';
+      
+      document.getElementById('lbl-auth-password').innerText = isEn ? 'Password' : '密码';
+      document.getElementById('auth-password').placeholder = isEn ? 'Enter password...' : '输入密码...';
+
+      document.getElementById('btn-auth-submit').innerText = isEn ? 'Login / Save to My Space' : '登录 / 存入我的专属空间';
+      document.getElementById('btn-auth-cancel').innerText = isEn ? 'Continue as Guest' : '暂不登录（继续浏览）';
+
       document.getElementById('auth-modal').classList.remove('hidden');
     }
 
@@ -443,14 +459,14 @@
           <div class="flex items-center bg-amber-100 border border-amber-400/80 rounded-xl px-2.5 py-1 space-x-1.5 text-xs font-bold text-amber-900">
             <span>👤 ${currentUser.replace('_', ' ')}</span>
             <button onclick="logout()" class="text-[10px] text-rose-700 hover:text-rose-900 font-extrabold bg-rose-100 px-1.5 py-0.5 rounded">
-              退出
+              ${lang === 'en' ? 'Exit' : '退出'}
             </button>
           </div>
         `;
       } else {
         authHeaderBtn.innerHTML = `
           <button onclick="openAuthModal()" class="px-2.5 py-1 text-xs font-bold rounded-xl bg-amber-200 text-amber-950 border border-amber-400 hover:bg-amber-300 transition">
-            🔑 登录 / 注册
+            ${lang === 'en' ? '🔑 Login / Register' : '🔑 登录 / 注册'}
           </button>
         `;
       }
@@ -698,9 +714,11 @@
             </div>
             
             <div class="bg-amber-100 p-4 rounded-2xl border border-amber-900/20 text-xs text-amber-900 space-y-1 text-center">
-              <p class="font-bold">${currentUser ? '🛡️ 专属账号模式 (已登录)' : '👀 游客预览模式'}</p>
+              <p class="font-bold">${currentUser ? (lang === 'en' ? '🛡️ Isolated User Space (Logged in)' : '🛡️ 专属账号模式 (已登录)') : (lang === 'en' ? '👀 Guest Mode' : '👀 游客预览模式')}</p>
               <p class="opacity-80">
-                ${currentUser ? `当前正在编辑 ${currentUser} 的专属规则空间（已同步语言及个性化数据）。` : '当前处于浏览模式，如需编辑大楼或添加内容，请随时点击登录/注册。'}
+                ${currentUser 
+                  ? (lang === 'en' ? `Currently editing private space for ${currentUser}. Language preference & data synced.` : `当前正在编辑 ${currentUser} 的专属规则空间（已同步语言及个性化数据）。`)
+                  : (lang === 'en' ? 'Currently browsing as guest. Click Login/Register anytime to customize.' : '当前处于浏览模式，如需编辑大楼或添加内容，请随时点击登录/注册。')}
               </p>
             </div>
           </div>
