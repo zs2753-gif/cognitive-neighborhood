@@ -7,48 +7,74 @@
   <link rel="manifest" href="/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { -webkit-tap-highlight-color: transparent; }
-    .glow-gold { box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
+    body { -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    
+    /* 3D 楼层立体透视与视效 */
+    .perspective-container { perspective: 1000px; }
+    .building-container { transform-style: preserve-3d; transform: rotateX(15deg) rotateY(-5deg); transition: all 0.5s ease; }
+    
+    .floor-3d {
+      position: relative;
+      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+      box-shadow: 0 10px 0 #cbd5e1, 0 15px 20px rgba(0,0,0,0.15);
+      transform: translateZ(0);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .floor-3d-gold {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      box-shadow: 0 10px 0 #f59e0b, 0 15px 25px rgba(245, 158, 11, 0.3);
+      border: 2px solid #fbbf24;
+    }
+    
+    .floor-3d:active {
+      transform: translateY(4px) translateZ(0);
+      box-shadow: 0 6px 0 #cbd5e1, 0 8px 10px rgba(0,0,0,0.1);
+    }
+
+    .roof-3d {
+      background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      box-shadow: 0 12px 0 #312e81, 0 20px 25px rgba(99, 102, 241, 0.3);
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans pb-24">
+<body class="bg-slate-900 text-slate-100 pb-24 min-h-screen">
 
-  <!-- 顶栏与语言切换器 -->
-  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex justify-between items-center">
+  <!-- 顶部标题栏与语言切换 -->
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex justify-between items-center">
     <div class="flex items-center space-x-2">
       <span class="text-xl">🏙️</span>
-      <h1 class="font-bold text-slate-900 text-lg" id="app-title">认知小区</h1>
+      <h1 class="font-bold text-white text-lg" id="app-title">认知小区</h1>
     </div>
-    <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200 active:scale-95 transition">
+    <button id="lang-btn" onclick="toggleLanguage()" class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800 active:scale-95 transition">
       EN / 中文
     </button>
   </header>
 
   <main class="max-w-md mx-auto p-4" id="main-container">
-    <!-- 内容将由 JavaScript 动态渲染 -->
+    <!-- 动态渲染核心 -->
   </main>
 
-  <!-- 底部导航栏 -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 px-3 flex justify-around items-center z-50 max-w-md mx-auto">
-    <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-medium text-indigo-600" id="nav-towers">
+  <!-- 底部导航 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 py-2 px-3 flex justify-around items-center z-50 max-w-md mx-auto">
+    <button onclick="switchTab('towers')" class="nav-btn flex flex-col items-center text-xs font-medium text-indigo-400" id="nav-towers">
       <span class="text-lg">🏢</span><span class="nav-label" data-zh="大楼" data-en="Towers">大楼</span>
     </button>
-    <button onclick="switchTab('locker')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-locker">
+    <button onclick="switchTab('locker')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-locker">
       <span class="text-lg">📦</span><span class="nav-label" data-zh="快递柜" data-en="Locker">快递柜</span>
     </button>
-    <button onclick="switchTab('mystery')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-mystery">
+    <button onclick="switchTab('mystery')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-mystery">
       <span class="text-lg">❓</span><span class="nav-label" data-zh="问答箱" data-en="Mystery">问答箱</span>
     </button>
-    <button onclick="switchTab('garden')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-garden">
+    <button onclick="switchTab('garden')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-garden">
       <span class="text-lg">🏡</span><span class="nav-label" data-zh="花园" data-en="Garden">花园</span>
     </button>
-    <button onclick="switchTab('archive')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-400" id="nav-archive">
+    <button onclick="switchTab('archive')" class="nav-btn flex flex-col items-center text-xs font-medium text-slate-500" id="nav-archive">
       <span class="text-lg">🗺️</span><span class="nav-label" data-zh="地图一览" data-en="Archive">地图一览</span>
     </button>
   </nav>
 
   <script>
-    // 全局数据状态与 LocalStorage 支持
     let lang = localStorage.getItem('cn_lang') || 'zh';
     let currentTab = 'towers';
     let selectedTowerId = null;
@@ -61,8 +87,8 @@
           name_en: 'Body Management',
           icon: '🏃‍♀️',
           floors: [
-            { id: 'f1', title_zh: '地基：作息与睡眠', title_en: 'Base: Sleep SOP', fortifyLevel: 2, maxFortify: 3, logs: ['睡眠<7小时影响训练发力', '11点前入睡恢复更快'] },
-            { id: 'f2', title_zh: '2楼：饮食与排卵期', title_en: 'Floor 2: Diet & Cycle', fortifyLevel: 3, maxFortify: 3, logs: ['排卵期吃复合碳水止甜食欲望', '先吃蛋白蔬菜再吃碳水', '晚8点后禁食水肿消退'] }
+            { id: 'f1', title_zh: '1楼：作息与睡眠', title_en: '1F: Sleep SOP', fortifyLevel: 2, maxFortify: 3, logs: ['睡眠<7小时影响训练发力', '11点前入睡恢复更快'] },
+            { id: 'f2', title_zh: '2楼：饮食与排卵期', title_en: '2F: Diet & Cycle', fortifyLevel: 3, maxFortify: 3, logs: ['排卵期吃复合碳水止甜食欲望', '先吃蛋白蔬菜再吃碳水'] }
           ]
         },
         {
@@ -71,7 +97,7 @@
           name_en: 'Wealth & Finance',
           icon: '📈',
           floors: [
-            { id: 'f3', title_zh: '地基：资产配置', title_en: 'Base: Asset Allocation', fortifyLevel: 1, maxFortify: 3, logs: ['预留6个月应急准备金'] }
+            { id: 'f1', title_zh: '1楼：资产配置地基', title_en: '1F: Asset Allocation', fortifyLevel: 1, maxFortify: 3, logs: ['预留6个月应急准备金'] }
           ]
         }
       ],
@@ -106,19 +132,18 @@
       currentTab = tab;
       if (towerId) selectedTowerId = towerId;
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('text-indigo-600');
-        btn.classList.add('text-slate-400');
+        btn.classList.remove('text-indigo-400');
+        btn.classList.add('text-slate-500');
       });
       const activeNav = document.getElementById(`nav-${tab === 'tower_detail' ? 'towers' : tab}`);
       if (activeNav) {
-        activeNav.classList.remove('text-slate-400');
-        activeNav.classList.add('text-indigo-600');
+        activeNav.classList.remove('text-slate-500');
+        activeNav.classList.add('text-indigo-400');
       }
       render();
     }
 
     function render() {
-      // 更新导航栏文字
       document.querySelectorAll('.nav-label').forEach(el => {
         el.innerText = el.getAttribute(`data-${lang}`);
       });
@@ -129,21 +154,23 @@
       if (currentTab === 'towers') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">${lang === 'zh' ? '选择你的建筑' : 'Select Your Tower'}</h2>
-            ${appData.towers.map(t => `
-              <div onclick="switchTab('tower_detail', '${t.id}')" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between cursor-pointer active:scale-98 transition">
-                <div class="flex items-center space-x-3">
-                  <div class="text-3xl p-2 bg-slate-100 rounded-xl">${t.icon}</div>
-                  <div>
-                    <h3 class="font-bold text-slate-800">${lang === 'zh' ? t.name_zh : t.name_en}</h3>
-                    <p class="text-xs text-slate-400">${t.floors.length}${lang === 'zh' ? '层楼层 / 已加固' : 'Floors / Reinforced'}</p>
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">${lang === 'zh' ? '我的建筑群 (点击进入)' : 'Select Your Building'}</h2>
+            <div class="grid grid-cols-1 gap-4">
+              ${appData.towers.map(t => `
+                <div onclick="switchTab('tower_detail', '${t.id}')" class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/80 flex items-center justify-between cursor-pointer active:scale-98 transition shadow-lg">
+                  <div class="flex items-center space-x-4">
+                    <div class="text-4xl p-3 bg-indigo-950/80 border border-indigo-800/50 rounded-2xl shadow-inner">${t.icon}</div>
+                    <div>
+                      <h3 class="font-bold text-white text-base">${lang === 'zh' ? t.name_zh : t.name_en}</h3>
+                      <p class="text-xs text-indigo-400 mt-1 font-semibold">🏢 ${t.floors.length}${lang === 'zh' ? '层高度' : 'Floors High'}</p>
+                    </div>
                   </div>
+                  <span class="text-slate-500 text-lg">➔</span>
                 </div>
-                <span class="text-slate-300">➔</span>
-              </div>
-            `).join('')}
-            <button onclick="addNewTower()" class="w-full py-3 bg-dashed border-2 border-dashed border-indigo-200 text-indigo-600 rounded-2xl font-medium text-sm flex items-center justify-center space-x-1 active:bg-indigo-50">
-              <span>+</span><span>${lang === 'zh' ? '新建大楼' : 'Create New Tower'}</span>
+              `).join('')}
+            </div>
+            <button onclick="addNewTower()" class="w-full py-4 border-2 border-dashed border-indigo-500/30 text-indigo-400 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2 bg-indigo-950/20 active:bg-indigo-900/40 transition">
+              <span class="text-lg">+</span><span>${lang === 'zh' ? '建造新大楼' : 'Build New Tower'}</span>
             </button>
           </div>
         `;
@@ -151,64 +178,91 @@
         const tower = appData.towers.find(t => t.id === selectedTowerId);
         container.innerHTML = `
           <div>
-            <button onclick="switchTab('towers')" class="text-xs text-indigo-600 font-medium mb-3 flex items-center">
-              ← ${lang === 'zh' ? '返回小区地图' : 'Back to District'}
-            </button>
-            <div class="flex items-center space-x-2 mb-4">
-              <span class="text-2xl">${tower.icon}</span>
-              <h2 class="text-xl font-bold text-slate-900">${lang === 'zh' ? tower.name_zh : tower.name_en}</h2>
+            <div class="flex justify-between items-center mb-4">
+              <button onclick="switchTab('towers')" class="text-xs text-indigo-400 font-bold flex items-center bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                ← ${lang === 'zh' ? '返回小区大地图' : 'Back to District'}
+              </button>
+              <button onclick="addNewFloor('${tower.id}')" class="text-xs bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg shadow-lg active:scale-95 transition">
+                + ${lang === 'zh' ? '向上建一层新楼' : 'Build Upper Floor'}
+              </button>
             </div>
-            <div class="space-y-3">
-              ${tower.floors.map(f => `
-                <div class="p-4 rounded-2xl bg-white border ${f.fortifyLevel >= f.maxFortify ? 'border-amber-300 glow-gold bg-gradient-to-r from-amber-50/30 to-white' : 'border-slate-200'} space-y-2">
-                  <div class="flex justify-between items-center">
-                    <span class="font-bold text-sm text-slate-800">${lang === 'zh' ? f.title_zh : f.title_en}</span>
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${f.fortifyLevel >= f.maxFortify ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">
-                      ${f.fortifyLevel >= f.maxFortify ? '🏆 ' + (lang === 'zh' ? '金砖加固' : 'Fortified') : `${f.fortifyLevel}/${f.maxFortify}`}
-                    </span>
-                  </div>
-                  <ul class="text-xs text-slate-600 space-y-1 pl-4 list-disc">
-                    ${f.logs.map(l => `<li>${l}</li>`).join('')}
-                  </ul>
-                  <button onclick="fortifyFloor('${tower.id}', '${f.id}')" class="w-full mt-2 py-1.5 text-xs bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 active:scale-95 transition">
-                    + ${lang === 'zh' ? '注入新感悟加固本层' : 'Inject Insight to Fortify'}
-                  </button>
+
+            <div class="flex items-center space-x-2 mb-6">
+              <span class="text-3xl">${tower.icon}</span>
+              <h2 class="text-2xl font-black text-white">${lang === 'zh' ? tower.name_zh : tower.name_en}</h2>
+            </div>
+
+            <!-- 3D 楼层垂直堆叠区 -->
+            <div class="perspective-container my-8 px-2">
+              <div class="building-container space-y-5">
+                
+                <!-- 屋顶顶部 -->
+                <div class="roof-3d p-3 rounded-2xl text-center text-white font-bold text-xs tracking-widest uppercase">
+                  👑 ${lang === 'zh' ? '认知巅峰 Roof' : 'Cognitive Roof'}
                 </div>
-              `).join('')}
+
+                <!-- 倒序渲染：最高层在最上面 -->
+                ${tower.floors.slice().reverse().map(f => `
+                  <div class="floor-3d ${f.fortifyLevel >= f.maxFortify ? 'floor-3d-gold' : ''} p-4 rounded-2xl text-slate-900 space-y-2">
+                    <div class="flex justify-between items-center">
+                      <span class="font-extrabold text-sm text-slate-900">${lang === 'zh' ? f.title_zh : f.title_en}</span>
+                      <span class="text-xs font-bold px-2 py-0.5 rounded-full ${f.fortifyLevel >= f.maxFortify ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-700'}">
+                        ${f.fortifyLevel >= f.maxFortify ? '🏆 ' + (lang === 'zh' ? '金砖加固' : 'Fortified') : `${f.fortifyLevel}/${f.maxFortify}`}
+                      </span>
+                    </div>
+
+                    <ul class="text-xs text-slate-700 space-y-1 pl-4 list-disc font-medium">
+                      ${f.logs.map(l => `<li>${l}</li>`).join('')}
+                    </ul>
+
+                    <div class="pt-1">
+                      <button onclick="fortifyFloor('${tower.id}', '${f.id}')" class="w-full py-1.5 text-xs bg-slate-900 text-white rounded-lg font-bold active:scale-95 transition">
+                        ⚡ ${lang === 'zh' ? '同类感悟：贴砖加固' : 'Reinforce Floor'}
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+
+                <!-- 楼层地基 -->
+                <div class="bg-slate-800 border-2 border-slate-700 p-3 rounded-2xl text-center text-slate-400 font-bold text-xs">
+                  🧱 ${lang === 'zh' ? '小区地基 BASE' : 'DISTRICT BASE'}
+                </div>
+
+              </div>
             </div>
           </div>
         `;
       } else if (currentTab === 'locker') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-bold text-slate-900">📦 ${lang === 'zh' ? '即时快递柜' : 'Express Locker'}</h2>
-            <div class="space-y-2">
+            <h2 class="text-lg font-black text-white">📦 ${lang === 'zh' ? '即时快递柜' : 'Express Locker'}</h2>
+            <div class="space-y-3">
               ${appData.expressLocker.map(item => `
-                <div class="bg-white p-3 rounded-xl border border-slate-200 text-xs text-slate-700 flex justify-between items-center">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-xs text-slate-200 flex justify-between items-center shadow-md">
                   <span>${lang === 'zh' ? item.text_zh : item.text_en}</span>
-                  <span class="text-xs text-indigo-500 font-medium ml-2 cursor-pointer" onclick="claimLocker('${item.id}')">${lang === 'zh' ? '砌入楼房' : 'Attach'}</span>
+                  <button onclick="claimLocker('${item.id}')" class="text-xs bg-indigo-600 text-white px-2.5 py-1 rounded-lg font-bold ml-2">${lang === 'zh' ? '砌入楼层' : 'Attach'}</button>
                 </div>
               `).join('')}
             </div>
-            <button onclick="addLockerItem()" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-medium shadow-md active:scale-95 transition">
-              + ${lang === 'zh' ? '存入闪念包裹' : 'Deposit Quick Thought'}
+            <button onclick="addLockerItem()" class="w-full py-3 bg-indigo-600 text-white rounded-2xl text-xs font-bold shadow-lg active:scale-95 transition">
+              + ${lang === 'zh' ? '存入闪念包裹' : 'Deposit Thought'}
             </button>
           </div>
         `;
       } else if (currentTab === 'mystery') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-bold text-slate-900">❓ ${lang === 'zh' ? '问答施工箱' : 'Mystery Box'}</h2>
+            <h2 class="text-lg font-black text-white">❓ ${lang === 'zh' ? '问答施工箱' : 'Mystery Box'}</h2>
             <div class="space-y-3">
               ${appData.mysteryBox.map(m => `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                  <p class="text-xs font-bold text-slate-800">Q: ${lang === 'zh' ? m.q_zh : m.q_en}</p>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3 shadow-md">
+                  <p class="text-xs font-bold text-indigo-300">Q: ${lang === 'zh' ? m.q_zh : m.q_en}</p>
                   ${m.isSolved ? `
-                    <div class="p-2 bg-emerald-50 rounded-lg text-xs text-emerald-800 border border-emerald-100">
+                    <div class="p-3 bg-emerald-950/80 border border-emerald-700/80 rounded-xl text-xs text-emerald-200">
                       <strong>A:</strong> ${lang === 'zh' ? m.a_zh : m.a_en}
                     </div>
                   ` : `
-                    <button onclick="solveMystery('${m.id}')" class="text-xs text-indigo-600 font-medium">${lang === 'zh' ? '点击破解转换为金砖 →' : 'Solve & Convert to Brick →'}</button>
+                    <button onclick="solveMystery('${m.id}')" class="text-xs bg-indigo-900 text-indigo-200 px-3 py-1.5 rounded-lg font-bold">${lang === 'zh' ? '破解转换为金砖 →' : 'Solve & Get Brick →'}</button>
                   `}
                 </div>
               `).join('')}
@@ -218,15 +272,15 @@
       } else if (currentTab === 'garden') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-bold text-slate-900">🏡 ${lang === 'zh' ? '身份愿景花园' : 'Personal Garden'}</h2>
-            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-2xl text-white space-y-4 shadow-lg">
+            <h2 class="text-lg font-black text-white">🏡 ${lang === 'zh' ? '身份愿景花园' : 'Personal Garden'}</h2>
+            <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-3xl text-white space-y-5 shadow-2xl">
               <div>
-                <span class="text-xs opacity-80 uppercase tracking-wider">Who You Are</span>
-                <p class="font-bold text-sm mt-1">${lang === 'zh' ? appData.garden.whoIAm_zh : appData.garden.whoIAm_en}</p>
+                <span class="text-xs font-extrabold opacity-75 uppercase tracking-wider">Who You Are</span>
+                <p class="font-extrabold text-base mt-1">${lang === 'zh' ? appData.garden.whoIAm_zh : appData.garden.whoIAm_en}</p>
               </div>
-              <div class="border-t border-white/20 pt-3">
-                <span class="text-xs opacity-80 uppercase tracking-wider">Future Self</span>
-                <p class="font-bold text-sm mt-1">${lang === 'zh' ? appData.garden.future_zh : appData.garden.future_en}</p>
+              <div class="border-t border-white/20 pt-4">
+                <span class="text-xs font-extrabold opacity-75 uppercase tracking-wider">Future Self</span>
+                <p class="font-extrabold text-base mt-1">${lang === 'zh' ? appData.garden.future_zh : appData.garden.future_en}</p>
               </div>
             </div>
           </div>
@@ -234,15 +288,15 @@
       } else if (currentTab === 'archive') {
         container.innerHTML = `
           <div class="space-y-4">
-            <h2 class="text-lg font-bold text-slate-900">🗺️ ${lang === 'zh' ? 'Archive 认知总览' : 'Master Archive'}</h2>
+            <h2 class="text-lg font-black text-white">🗺️ ${lang === 'zh' ? 'Archive 认知资产全景' : 'Master Archive'}</h2>
             <div class="grid grid-cols-2 gap-3">
-              <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
-                <div class="text-2xl font-bold text-indigo-600">${appData.towers.length}</div>
-                <div class="text-xs text-slate-400">${lang === 'zh' ? '建起的大楼' : 'Towers Built'}</div>
+              <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
+                <div class="text-3xl font-black text-indigo-400">${appData.towers.length}</div>
+                <div class="text-xs text-slate-400 mt-1">${lang === 'zh' ? '总建筑数' : 'Total Towers'}</div>
               </div>
-              <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
-                <div class="text-2xl font-bold text-amber-500">${appData.mysteryBox.filter(m => m.isSolved).length}</div>
-                <div class="text-xs text-slate-400">${lang === 'zh' ? '攻克的疑惑' : 'Solved Mysteries'}</div>
+              <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
+                <div class="text-3xl font-black text-amber-400">${appData.mysteryBox.filter(m => m.isSolved).length}</div>
+                <div class="text-xs text-slate-400 mt-1">${lang === 'zh' ? '已破解金砖' : 'Solved Bricks'}</div>
               </div>
             </div>
           </div>
@@ -250,9 +304,27 @@
       }
     }
 
-    // 交互辅助逻辑
+    // 逻辑功能增加：直接建新楼层！
+    function addNewFloor(towerId) {
+      const name = prompt(lang === 'zh' ? '请输入新楼层的主题名称（如：3楼 运动SOP）：' : 'Enter new floor title:');
+      if (name) {
+        const tower = appData.towers.find(t => t.id === towerId);
+        const newFloorNum = tower.floors.length + 1;
+        tower.floors.push({
+          id: Date.now().toString(),
+          title_zh: name.includes('楼') ? name : `${newFloorNum}楼：${name}`,
+          title_en: name,
+          fortifyLevel: 1,
+          maxFortify: 3,
+          logs: [lang === 'zh' ? '新楼层封顶建起' : 'New floor constructed']
+        });
+        saveData();
+        render();
+      }
+    }
+
     function fortifyFloor(towerId, floorId) {
-      const input = prompt(lang === 'zh' ? '请输入一条同类感悟/经验：' : 'Enter an insight for this floor:');
+      const input = prompt(lang === 'zh' ? '请输入一条同类感悟/经验来贴砖加固：' : 'Enter an insight for this floor:');
       if (input) {
         const tower = appData.towers.find(t => t.id === towerId);
         const floor = tower.floors.find(f => f.id === floorId);
@@ -264,7 +336,7 @@
     }
 
     function addLockerItem() {
-      const input = prompt(lang === 'zh' ? '存入一条闪念/想法：' : 'Deposit a quick thought:');
+      const input = prompt(lang === 'zh' ? '存入一条闪念/包裹：' : 'Deposit a quick thought:');
       if (input) {
         appData.expressLocker.push({ id: Date.now().toString(), text_zh: input, text_en: input });
         saveData();
@@ -273,12 +345,12 @@
     }
 
     function claimLocker(id) {
-      alert(lang === 'zh' ? '请前往对应大楼的楼层点击“加固”将其砌入！' : 'Please go to a tower floor and click "Fortify" to attach!');
+      alert(lang === 'zh' ? '请前往具体的大楼，在对应楼层点击“贴砖加固”将其填入！' : 'Go to a tower floor and click "Reinforce"!');
     }
 
     function solveMystery(id) {
       const item = appData.mysteryBox.find(m => m.id === id);
-      const ans = prompt(lang === 'zh' ? '请输入答案与破解心得：' : 'Enter the answer/solution:');
+      const ans = prompt(lang === 'zh' ? '请输入答案与破解心得：' : 'Enter the solution:');
       if (ans) {
         item.a_zh = ans;
         item.a_en = ans;
@@ -296,14 +368,13 @@
           name_zh: name,
           name_en: name,
           icon: '🏛️',
-          floors: [{ id: Date.now().toString(), title_zh: '地基：核心规则', title_en: 'Base: Core Rules', fortifyLevel: 1, maxFortify: 3, logs: ['初始建立'] }]
+          floors: [{ id: Date.now().toString(), title_zh: '1楼：地基与规则', title_en: '1F: Base & Rules', fortifyLevel: 1, maxFortify: 3, logs: ['新建大楼'] }]
         });
         saveData();
         render();
       }
     }
 
-    // 页面初始化渲染
     render();
   </script>
 </body>
